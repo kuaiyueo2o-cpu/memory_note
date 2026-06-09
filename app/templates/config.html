@@ -1,0 +1,898 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+    <title>Memory Companion — 配置中心</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root{--primary:#10B981;--primary-d:#059669;--primary-l:#D1FAE5;--primary-ll:rgba(16,185,129,.08);--accent:#8B5CF6;--accent-l:#EDE9FE;--warm:#F59E0B;--warm-l:#FEF3C7;--danger:#EF4444;--danger-l:#FEE2E2;--info:#3B82F6;--info-l:#DBEAFE;--bg:#F0F2F5;--card:#FFF;--text:#191919;--text2:#666;--text3:#999;--border:#E5E5E5;--r:12px;--rl:16px;--safe-b:env(safe-area-inset-bottom,0px)}
+        *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+        body{font-family:'Noto Sans SC',-apple-system,BlinkMacSystemFont,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+
+        /* ===== 顶部导航栏 ===== */
+        .nav-bar{position:sticky;top:0;z-index:100;background:var(--card);border-bottom:1px solid var(--border);padding:10px 16px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 1px 4px rgba(0,0,0,.04)}
+        .nav-bar .brand{display:flex;align-items:center;gap:10px}
+        .nav-bar .logo{width:32px;height:32px;background:linear-gradient(135deg,var(--primary),var(--accent));border-radius:8px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:14px}
+        .nav-bar .title{font-size:17px;font-weight:600}
+        .nav-bar .sub{font-size:11px;color:var(--text3)}
+        .icon-btn{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;border:none;background:transparent;color:var(--text2);font-size:18px;cursor:pointer;transition:all .2s}
+        .icon-btn:active{background:var(--bg);transform:scale(.92)}
+
+        /* ===== 内容区 ===== */
+        .content{padding:0 16px 80px}
+        .tab-pane{display:none}.tab-pane.on{display:block;animation:fadeUp .3s}
+
+        /* ===== 统计卡片行 ===== */
+        .stats-row{display:flex;gap:10px;padding:14px 0 6px}
+        .stat-card{flex:1;background:var(--card);border-radius:var(--r);padding:14px 12px;text-align:center;box-shadow:0 2px 8px rgba(0,0,0,.04);position:relative;overflow:hidden}
+        .stat-card::after{content:'';position:absolute;top:0;left:0;right:0;height:3px;border-radius:3px 3px 0 0}
+        .stat-card.s-green::after{background:var(--primary)}
+        .stat-card.s-purple::after{background:var(--accent)}
+        .stat-card.s-warm::after{background:var(--warm)}
+        .stat-card .sv{font-size:26px;font-weight:700;color:var(--text);line-height:1.2}
+        .stat-card .sl{font-size:11px;color:var(--text3);margin-top:4px;display:flex;align-items:center;justify-content:center;gap:3px}
+        .stat-card .si{font-size:13px;margin-bottom:2px}
+        .si.green{color:var(--primary)}.si.purple{color:var(--accent)}.si.warm{color:var(--warm)}
+
+        /* ===== 区域标题 ===== */
+        .sec-hd{display:flex;align-items:center;justify-content:space-between;padding:18px 0 10px}
+        .sec-hd h3{font-size:16px;font-weight:600;display:flex;align-items:center;gap:8px}
+        .sec-hd h3 i{font-size:15px;color:var(--primary)}
+
+        /* ===== 按钮 ===== */
+        .btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:8px 16px;border-radius:8px;font-size:13px;font-weight:500;border:none;cursor:pointer;font-family:inherit;transition:all .2s}
+        .btn:active{transform:scale(.96)}
+        .btn-p{background:var(--primary);color:#fff}.btn-o{background:transparent;color:var(--primary);border:1.5px solid var(--primary)}
+        .btn-w{background:var(--warm);color:#fff}.btn-d{background:transparent;color:var(--danger);border:1.5px solid var(--danger)}
+        .btn-g{background:var(--bg);color:var(--text2)}.btn-accent{background:var(--accent);color:#fff}
+        .btn-sm{padding:6px 12px;font-size:12px}.btn-xs{padding:4px 10px;font-size:11px;border-radius:6px}
+        .btn-block{width:100%;padding:12px;font-size:15px;font-weight:600}
+        .btn-ghost{background:transparent;color:var(--text2);padding:6px 10px}
+        .fab{position:fixed;bottom:80px;right:20px;width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--primary-d));color:#fff;font-size:22px;border:none;cursor:pointer;box-shadow:0 4px 20px rgba(16,185,129,.4);display:flex;align-items:center;justify-content:center;z-index:50;transition:all .3s}
+        .fab:active{transform:scale(.9)}
+
+        /* ===== 成员卡片 ===== */
+        .m-card{background:var(--card);border-radius:var(--rl);padding:16px;margin-bottom:12px;box-shadow:0 2px 8px rgba(0,0,0,.04);position:relative;overflow:hidden;transition:all .25s;border:1.5px solid transparent}
+        .m-card:active{transform:scale(.985)}
+        .m-card .top-bar{position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--primary),var(--accent))}
+        .m-card .hd{display:flex;align-items:center;gap:14px;margin-bottom:10px}
+        .m-card .avatar{width:52px;height:52px;border-radius:50%;background:var(--primary-l);display:flex;align-items:center;justify-content:center;font-size:20px;color:var(--primary);overflow:hidden;flex-shrink:0;border:2.5px solid var(--primary-l)}
+        .m-card .avatar img{width:100%;height:100%;object-fit:cover}
+        .m-card .info{flex:1;min-width:0}
+        .m-card .info h4{font-size:16px;font-weight:600;line-height:1.3}
+        .m-card .rel-badge{display:inline-flex;align-items:center;gap:3px;padding:2px 8px;background:var(--primary-l);color:var(--primary-d);border-radius:10px;font-size:11px;font-weight:500;margin-top:2px}
+        .m-card .m-acts{position:absolute;top:12px;right:12px;display:flex;gap:4px}
+        .m-card .m-acts .icon-btn{width:30px;height:30px;font-size:13px}
+        .m-card .status-row{display:flex;gap:14px;margin-bottom:8px}
+        .m-card .st-item{display:flex;align-items:center;gap:5px;font-size:12px;color:var(--text3)}
+        .m-card .st-dot{width:7px;height:7px;border-radius:50%}
+        .m-card .st-dot.done{background:var(--primary)}.m-card .st-dot.pend{background:var(--warm)}
+        .m-card .tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+        .tag{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:500;line-height:1.4}
+        .tag i{font-size:10px}
+        .tag-food{background:rgba(232,130,90,.1);color:#c0532e;border:1px solid rgba(232,130,90,.2)}
+        .tag-color{background:rgba(123,97,255,.08);color:#5b3fd6;border:1px solid rgba(123,97,255,.15)}
+        .tag-person{background:rgba(245,166,35,.1);color:#b07a12;border:1px solid rgba(245,166,35,.2)}
+        .tag-quote{background:var(--primary-ll);color:var(--primary);border:1px solid rgba(16,185,129,.15)}
+        .m-card .memory-block{margin-top:8px;padding:8px 10px;background:var(--bg);border-radius:8px;font-size:12px;color:var(--text2);line-height:1.6;border-left:3px solid var(--primary)}
+        .m-card .special-block{margin-top:8px;padding:8px 10px;background:linear-gradient(135deg,rgba(224,86,122,.05),rgba(245,166,35,.05));border-radius:8px;font-size:12px;color:var(--text2);line-height:1.6;border-left:3px solid #e0567a}
+
+        /* ===== 空状态 ===== */
+        .empty{text-align:center;padding:40px 24px;color:var(--text3)}
+        .empty .empty-ic{width:64px;height:64px;border-radius:50%;background:var(--primary-l);display:flex;align-items:center;justify-content:center;margin:0 auto 12px;font-size:26px;color:var(--primary)}
+        .empty h4{font-size:16px;color:var(--text2);margin-bottom:6px}
+        .empty p{font-size:13px;margin-top:4px}
+
+        /* ===== 城市配置 ===== */
+        .city-card{background:var(--card);border-radius:var(--rl);padding:16px;box-shadow:0 2px 8px rgba(0,0,0,.04);margin-bottom:12px}
+        .city-card .hd{display:flex;align-items:center;gap:8px;margin-bottom:12px;font-size:15px;font-weight:600}
+        .city-card .hd i{color:var(--info)}
+        .city-row{display:flex;gap:10px;align-items:center}
+        .city-row .form-input{flex:1}
+
+        /* ===== 播放时间 ===== */
+        .sched-row{display:flex;gap:10px;margin-bottom:12px}
+        .sched-item{flex:1;background:var(--card);border-radius:var(--r);padding:14px 10px;text-align:center;box-shadow:0 2px 8px rgba(0,0,0,.04)}
+        .sched-item .pi{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 8px;font-size:18px}
+        .sched-item .pi.morning{background:#FEF3C7;color:#D97706}
+        .sched-item .pi.noon{background:#DBEAFE;color:#2563EB}
+        .sched-item .pi.evening{background:#EDE9FE;color:#7C3AED}
+        .sched-item .pn{font-size:13px;font-weight:500;margin-bottom:8px}
+        .sched-item input[type="time"]{padding:6px 8px;border:1.5px solid var(--border);border-radius:8px;font-size:15px;font-family:inherit;color:var(--text);text-align:center;width:100%}
+        .sched-item input[type="time"]:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 3px rgba(16,185,129,.1)}
+
+        /* ===== 事件列表 ===== */
+        .ev-item{display:flex;align-items:center;gap:12px;padding:14px;background:var(--card);border-radius:var(--r);margin-bottom:10px;box-shadow:0 2px 8px rgba(0,0,0,.04);transition:all .25s;border:1.5px solid transparent}
+        .ev-item:active{transform:scale(.985)}
+        .ev-item.off{opacity:.5}
+        .ev-time{font-size:22px;font-weight:700;color:var(--text);font-variant-numeric:tabular-nums;min-width:70px;letter-spacing:-.5px}
+        .ev-main{flex:1;min-width:0}
+        .ev-title{font-size:14px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+        .ev-badges{display:flex;flex-wrap:wrap;gap:5px;margin-top:4px}
+        .ev-badge{display:inline-flex;align-items:center;gap:3px;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:600}
+        .ev-badge.repeat{background:var(--accent-l);color:var(--accent)}
+        .ev-badge.day{background:var(--primary-l);color:var(--primary-d)}
+        .ev-ctrl{display:flex;align-items:center;gap:6px;flex-shrink:0}
+
+        /* ===== 开关 ===== */
+        .sw{position:relative;width:44px;height:26px}
+        .sw input{display:none}
+        .sw .sl{position:absolute;inset:0;background:#CBD5E1;border-radius:26px;cursor:pointer;transition:.3s}
+        .sw .sl::before{content:'';position:absolute;width:22px;height:22px;left:2px;bottom:2px;background:#fff;border-radius:50%;transition:.3s;box-shadow:0 1px 3px rgba(0,0,0,.2)}
+        .sw input:checked+.sl{background:var(--primary)}
+        .sw input:checked+.sl::before{transform:translateX(18px)}
+
+        /* ===== 管道状态 ===== */
+        .pipe-row{display:flex;gap:10px;margin-bottom:12px}
+        .elder-chips{display:flex;gap:6px;margin-left:8px;flex-shrink:0}
+        .chip{padding:4px 12px;border-radius:16px;font-size:12px;border:1.5px solid var(--border);background:var(--card);color:var(--text2);cursor:pointer;transition:all .2s;white-space:nowrap}
+        .chip:hover{border-color:var(--primary);color:var(--primary);background:var(--primary-l)}
+        .chip:active{transform:scale(.95)}
+
+        /* ===== 老人画像卡片 ===== */
+        .elder-profile-card{background:var(--card);border-radius:var(--rl);padding:18px;margin-bottom:14px;box-shadow:0 2px 12px rgba(0,0,0,.06);border:1.5px solid transparent;position:relative;overflow:hidden;transition:all .3s}
+        .elder-profile-card:hover{box-shadow:0 4px 20px rgba(0,0,0,.1)}
+        .elder-profile-card::before{content:'';position:absolute;top:0;left:0;right:0;height:4px;background:linear-gradient(90deg,#F59E0B,#EF4444,#8B5CF6);border-radius:4px 4px 0 0}
+        .elder-top{display:flex;align-items:center;gap:14px}
+        .elder-avatar{width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,#FEF3C7,#FEE2E2);display:flex;align-items:center;justify-content:center;font-size:24px;color:#D97706;flex-shrink:0;border:3px solid #FEF3C7;transition:all .3s}
+        .elder-avatar.filled{background:linear-gradient(135deg,#D1FAE5,#DBEAFE);color:var(--primary);border-color:#D1FAE5}
+        .elder-basic{flex:1;min-width:0}
+        .elder-name-row{display:flex;align-items:center;gap:10px;margin-bottom:4px}
+        .elder-name{font-size:17px;font-weight:700;color:var(--text)}
+        .elder-meta{display:flex;flex-wrap:wrap;gap:6px;font-size:12px;color:var(--text3);line-height:1.6}
+        .elder-tags-row{margin-top:12px;padding-top:12px;border-top:1px dashed var(--border)}
+        .elder-tags{display:flex;flex-wrap:wrap;gap:6px}
+        .etag{display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:20px;font-size:11px;font-weight:500;line-height:1.4;border:1px solid}
+        .etag-age{background:rgba(245,158,11,.08);color:#92400E;border-color:rgba(245,158,11,.2)}
+        .etag-gender{background:rgba(139,92,246,.08);color:#5B21B6;border-color:rgba(139,92,246,.15)}
+        .etag-edu{background:rgba(59,130,246,.08);color:#1D4ED8;border-color:rgba(59,130,246,.15)}
+        .etag-symptom{background:rgba(239,68,68,.06);color:#991B1B;border-color:rgba(239,68,68,.15)}
+        .etag-severity{background:rgba(245,158,11,.08);color:#92400E;border-color:rgba(245,158,11,.2)}
+        .etag-worry{background:rgba(224,86,122,.06);color:#9B1B3C;border-color:rgba(224,86,122,.15)}
+
+        /* ===== 症状程度选择器 ===== */
+        .severity-opts{display:flex;gap:8px}
+        .sev-opt{flex:1;text-align:center;padding:12px 6px;border:1.5px solid var(--border);border-radius:var(--r);cursor:pointer;transition:all .2s}
+        .sev-opt:hover{border-color:var(--primary)}
+        .sev-opt.sel{border-color:var(--primary);background:var(--primary-l);box-shadow:0 0 0 3px rgba(16,185,129,.1)}
+        .sev-dot{width:10px;height:10px;border-radius:50%;margin:0 auto 6px}
+        .sev-opt span{display:block;font-size:14px;font-weight:600;color:var(--text)}
+        .sev-opt small{display:block;font-size:10px;color:var(--text3);margin-top:3px;line-height:1.3}
+
+        /* ===== 表单 ===== */
+        .form-group{margin-bottom:16px}
+        .form-label{display:block;font-size:13px;font-weight:500;color:var(--text2);margin-bottom:5px}
+        .form-label .req{color:var(--danger);margin-left:1px}
+        .form-label i{margin-right:3px}
+        .form-label .ic-food{color:#e8825a}.form-label .ic-color{color:#7b61ff}
+        .form-label .ic-person{color:#f5a623}.form-label .ic-quote{color:var(--primary)}
+        .form-label .ic-memory{color:#e0567a}
+        .form-input{width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:14px;font-family:inherit;color:var(--text);transition:all .2s;background:var(--card)}
+        .form-input:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 3px rgba(16,185,129,.1)}
+        textarea.form-input{resize:vertical;min-height:70px;line-height:1.6}
+        .form-input.err{border-color:var(--danger);box-shadow:0 0 0 3px rgba(239,68,68,.1);animation:shake .4s}
+        @keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+        .form-row{display:flex;gap:10px}
+        .form-row .form-group{flex:1}
+        .form-select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23666' d='M6 8L1 3h10z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:32px}
+        .profile-hint{display:flex;align-items:flex-start;gap:8px;padding:10px 12px;margin-bottom:14px;border-radius:8px;background:linear-gradient(135deg,rgba(16,185,129,.06),rgba(232,142,90,.06));border:1px dashed rgba(16,185,129,.25);font-size:12px;line-height:1.5;color:var(--text3)}
+        .profile-hint i{color:#e0567a;margin-top:1px;font-size:13px;flex-shrink:0}
+        .profile-hint b{color:var(--primary)}
+
+        /* ===== 上传区域 ===== */
+        .upload-zone{border:2px dashed var(--border);border-radius:10px;padding:18px;text-align:center;cursor:pointer;transition:all .3s;background:var(--bg)}
+        .upload-zone:active{border-color:var(--primary);background:var(--primary-l)}
+        .upload-zone.has{border-color:var(--primary);border-style:solid;background:var(--primary-l)}
+        .upload-zone i{font-size:22px;color:var(--primary);margin-bottom:4px}
+        .upload-zone p{font-size:12px;color:var(--text3)}
+        .upload-zone .fn{font-size:12px;color:var(--primary);font-weight:500;margin-top:3px}
+
+        /* ===== 循环选择 ===== */
+        .repeat-opts{display:flex;gap:8px;flex-wrap:wrap}
+        .repeat-opt{flex:1;min-width:70px;text-align:center;padding:9px 6px;border:1.5px solid var(--border);border-radius:8px;cursor:pointer;font-size:13px;font-weight:500;color:var(--text3);transition:all .2s}
+        .repeat-opt.sel{border-color:var(--primary);background:var(--primary-l);color:var(--primary)}
+        .wd-picker{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+        .wd-chip{width:38px;height:38px;display:flex;align-items:center;justify-content:center;border-radius:50%;border:1.5px solid var(--border);font-size:13px;font-weight:500;cursor:pointer;transition:all .2s;user-select:none;color:var(--text3)}
+        .wd-chip.sel{background:var(--primary);color:#fff;border-color:var(--primary);box-shadow:0 2px 8px rgba(16,185,129,.3)}
+
+        /* ===== 底部Tab栏 ===== */
+        .tab-bar{position:fixed;bottom:0;left:0;right:0;background:var(--card);border-top:1px solid var(--border);display:flex;z-index:100;padding-bottom:var(--safe-b)}
+.tab-i{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:8px 0 6px;cursor:pointer;color:var(--text3);transition:color .2s;border:none;background:none;font-family:inherit;position:relative;text-decoration:none}
+        .tab-i.on{color:var(--primary)}
+        .tab-i i{font-size:22px;margin-bottom:2px}
+        .tab-i span{font-size:11px}
+        /* 播放页跳转入口：主题色高亮，区别于页内切换 tab */
+        .tab-i.tab-play{text-decoration:none;color:var(--primary)}
+        .tab-i.tab-play i{transition:transform .2s}
+        .tab-i.tab-play:active i{transform:scale(.88)}
+        .tab-i.tab-play:hover i{transform:scale(1.12)}
+
+        /* ===== 弹窗 ===== */
+        .mask{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;display:none;align-items:flex-end;justify-content:center}
+        .mask.show{display:flex;animation:fadeIn .2s}
+        .sheet{background:var(--card);border-radius:16px 16px 0 0;width:100%;max-height:85vh;overflow-y:auto;animation:slideUp .3s cubic-bezier(.34,1.56,.64,1)}
+        .sheet .sh{padding:14px 18px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);position:sticky;top:0;background:var(--card);z-index:1}
+        .sheet .sh h3{font-size:16px;font-weight:600}
+        .sheet .sb{padding:18px}
+        .sheet .sb textarea{width:100%;min-height:100px;border:1.5px solid var(--border);border-radius:var(--r);padding:10px;font-size:14px;line-height:1.6;font-family:inherit;color:var(--text);resize:vertical;background:var(--bg)}
+        .sheet .sb textarea:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 3px rgba(16,185,129,.1)}
+        .sheet .sf{padding:14px 18px;display:flex;gap:10px;padding-bottom:calc(14px + var(--safe-b))}
+
+        /* ===== Toast ===== */
+        .toast{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,.76);color:#fff;padding:12px 24px;border-radius:8px;font-size:14px;z-index:999;pointer-events:none;animation:fadeIn .2s;max-width:80%;text-align:center}
+
+        /* ===== 提示条 ===== */
+        .hint-bar{display:flex;align-items:center;gap:6px;padding:8px 12px;background:var(--info-l);border-radius:8px;font-size:12px;color:var(--info);margin-top:10px}
+        .hint-bar i{flex-shrink:0}
+
+        /* ===== 分割线 ===== */
+        .divider{height:1px;background:var(--border);margin:16px 0}
+
+        /* ===== 动画 ===== */
+        @keyframes fadeIn{from{opacity:0}to{opacity:1}}
+        @keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+        @keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+        @keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(16,185,129,.4)}50%{box-shadow:0 0 0 10px rgba(16,185,129,0)}}
+    </style>
+</head>
+<body>
+    <!-- 导航栏 -->
+    <div class="nav-bar">
+        <div class="brand">
+            <div class="logo"><i class="fas fa-cog"></i></div>
+            <div>
+                <div class="title">配置中心</div>
+                <div class="sub">Memory Companion</div>
+            </div>
+        </div>
+        <a href="/play" class="icon-btn" title="返回播放页"><i class="fas fa-play-circle"></i></a>
+    </div>
+
+    <!-- 内容区 -->
+    <div class="content">
+        <!-- ===== Tab 1: 成员 ===== -->
+        <div class="tab-pane on" id="tabMembers">
+            <div class="stats-row">
+                <div class="stat-card s-green">
+                    <div class="si green"><i class="fas fa-users"></i></div>
+                    <div class="sv" id="statMembers">0</div>
+                    <div class="sl">家庭成员</div>
+                </div>
+                <div class="stat-card s-purple">
+                    <div class="si purple"><i class="fas fa-calendar-check"></i></div>
+                    <div class="sv" id="statEvents">0</div>
+                    <div class="sl">日程事件</div>
+                </div>
+                <div class="stat-card s-warm">
+                    <div class="si warm"><i class="fas fa-image"></i></div>
+                    <div class="sv" id="statPhotos">0</div>
+                    <div class="sl">照片已传</div>
+                </div>
+            </div>
+            <!-- 老人身份画像 -->
+            <div class="elder-profile-card" id="elderCard">
+                <div class="elder-top">
+                    <div class="elder-avatar" id="elderAvatar">
+                        <i class="fas fa-user-clock"></i>
+                    </div>
+                    <div class="elder-basic">
+                        <div class="elder-name-row">
+                            <span class="elder-name" id="elderNameDisplay">点击填写老人信息</span>
+                            <button class="btn btn-xs btn-o" onclick="openElderModal()"><i class="fas fa-pen"></i> 编辑</button>
+                        </div>
+                        <div class="elder-meta" id="elderMetaDisplay">
+                            <span>尚未填写老人身份画像</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="elder-tags-row" id="elderTagsRow" style="display:none">
+                    <div class="elder-tags" id="elderTags"></div>
+                </div>
+            </div>
+
+            <div class="sec-hd">
+                <h3><i class="fas fa-user-friends"></i> 家庭成员</h3>
+                <button class="btn btn-p btn-sm" onclick="openMemberModal()"><i class="fas fa-plus"></i> 添加</button>
+            </div>
+            <div id="membersBox"></div>
+        </div>
+
+        <!-- ===== Tab 2: 信息（天气 + 日程 + 播报） ===== -->
+        <div class="tab-pane" id="tabInfo">
+            <!-- 城市天气 -->
+            <div class="sec-hd">
+                <h3><i class="fas fa-cloud-sun-rain" style="color:var(--info)"></i> 所在城市 · 天气</h3>
+            </div>
+            <div class="city-card">
+                <div class="city-row">
+                    <input type="text" class="form-input" id="cityInput" placeholder="例如：北京、上海、杭州" onblur="saveCity()">
+                    <span style="font-size:12px;color:var(--text3);white-space:nowrap"><i class="fas fa-check-circle" style="color:var(--primary)"></i> 自动保存</span>
+                </div>
+                <div class="hint-bar">
+                    <i class="fas fa-info-circle"></i>
+                    <span>自动获取实时天气与穿衣建议，写入每日播报</span>
+                </div>
+            </div>
+
+            <div class="divider"></div>
+
+            <div class="sec-hd">
+                <h3><i class="fas fa-clock"></i> 播放时间</h3>
+                <span style="font-size:12px;color:var(--text3)"><i class="fas fa-check-circle" style="color:var(--primary)"></i> 自动保存</span>
+            </div>
+            <div class="sched-row">
+                <div class="sched-item">
+                    <div class="pi morning"><i class="fas fa-sun"></i></div>
+                    <div class="pn">🌅 早安</div>
+                    <input type="time" id="timeMorning" value="07:30" onchange="saveSchedules()">
+                </div>
+                <div class="sched-item">
+                    <div class="pi noon"><i class="fas fa-cloud-sun"></i></div>
+                    <div class="pn">🌤 午间</div>
+                    <input type="time" id="timeNoon" value="14:00" onchange="saveSchedules()">
+                </div>
+                <div class="sched-item">
+                    <div class="pi evening"><i class="fas fa-moon"></i></div>
+                    <div class="pn">🌙 晚安</div>
+                    <input type="time" id="timeEvening" value="20:00" onchange="saveSchedules()">
+                </div>
+            </div>
+
+            <div class="sec-hd">
+                <h3><i class="fas fa-calendar-check"></i> 自定义日程</h3>
+                <button class="btn btn-p btn-sm" onclick="openEventModal()"><i class="fas fa-plus"></i> 添加</button>
+            </div>
+            <div id="eventsBox"></div>
+            <div class="hint-bar">
+                <i class="fas fa-info-circle"></i>
+                <span>系统会按循环规则筛出今日事件，在播报中温柔提醒</span>
+            </div>
+
+            <div class="divider"></div>
+
+            <!-- 快捷操作 -->
+            <div class="sec-hd">
+                <h3><i class="fas fa-bolt" style="color:var(--warm)"></i> 快捷操作</h3>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:10px">
+                <button class="btn btn-g btn-block" onclick="saveAndClone()"><i class="fas fa-magic"></i> 保存配置并生成播报</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 底部Tab栏 -->
+    <div class="tab-bar">
+        <a class="tab-i" data-tab="play" href="/play"><i class="fas fa-circle-play"></i><span>播放</span></a>
+        <button class="tab-i on" data-tab="tabMembers" onclick="switchTab('tabMembers')"><i class="fas fa-users"></i><span>家属</span></button>
+        <button class="tab-i" data-tab="tabInfo" onclick="switchTab('tabInfo')"><i class="fas fa-calendar-alt"></i><span>信息</span></button>
+    </div>
+
+    <!-- ===== 成员弹窗 ===== -->
+    <div class="mask" id="memberMask" onclick="if(event.target===this)closeMemberModal()">
+        <div class="sheet">
+            <div class="sh">
+                <h3 id="memberSheetTitle">✨ 添加家庭成员</h3>
+                <button class="icon-btn" onclick="closeMemberModal()"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="sb">
+                <div class="profile-hint">
+                    <i class="fas fa-heart"></i>
+                    <span>请尽量填写完整，帮AI在老人心里拼出最温暖的样子。<b>带 * 为必填</b></span>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">姓名 <span class="req">*</span></label>
+                        <input type="text" class="form-input" id="fName" placeholder="真实姓名">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">与患者关系 <span class="req">*</span></label>
+                        <select class="form-input form-select" id="fRelation">
+                            <option value="">请选择</option>
+                            <option value="女儿">女儿</option>
+                            <option value="儿子">儿子</option>
+                            <option value="老伴">老伴</option>
+                            <option value="儿媳">儿媳</option>
+                            <option value="女婿">女婿</option>
+                            <option value="孙女">孙女</option>
+                            <option value="孙子">孙子</option>
+                            <option value="护工">护工</option>
+                            <option value="其他">其他</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label"><i class="fas fa-utensils ic-food"></i> 最爱吃什么 <span class="req">*</span></label>
+                        <input type="text" class="form-input" id="fFood" placeholder="例如：红烧肉">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label"><i class="fas fa-palette ic-color"></i> 最喜欢的颜色 <span class="req">*</span></label>
+                        <input type="text" class="form-input" id="fColor" placeholder="例如：桃红色">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label"><i class="fas fa-smile ic-person"></i> 性格特点 <span class="req">*</span></label>
+                        <input type="text" class="form-input" id="fPersonality" placeholder="例如：开朗爱笑">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label"><i class="fas fa-comment-dots ic-quote"></i> 口头禅</label>
+<input type="text" class="form-input" id="fCatchphrase" placeholder="例如：奶奶你别累着">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label"><i class="fas fa-star ic-memory"></i> 和老人最难忘的一件事 <span class="req">*</span></label>
+<textarea class="form-input" id="fSpecial" placeholder="越具体越好，例如：&#10;小时候每天早上让奶奶梳辫子"></textarea>
+                </div>
+                <div class="form-group">
+                    <label class="form-label"><i class="fas fa-book-open"></i> 其它共同记忆</label>
+                    <textarea class="form-input" id="fMemory" placeholder="补充更多回忆素材"></textarea>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">📸 上传照片</label>
+                        <div class="upload-zone" id="photoZone" onclick="document.getElementById('photoFile').click()">
+                            <i class="fas fa-camera"></i>
+                            <p>点击上传正脸照片</p>
+                            <p class="fn" id="photoFn"></p>
+                        </div>
+                        <input type="file" id="photoFile" accept="image/*" style="display:none" onchange="handlePhoto(this)">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">🎙 上传声音</label>
+                        <div class="upload-zone" id="voiceZone" onclick="document.getElementById('voiceFile').click()">
+                            <i class="fas fa-microphone-alt"></i>
+                            <p>点击上传语音(≥30秒)</p>
+                            <p class="fn" id="voiceFn"></p>
+                        </div>
+                        <input type="file" id="voiceFile" accept="audio/*" style="display:none" onchange="handleVoice(this)">
+                    </div>
+                </div>
+            </div>
+            <div class="sf">
+                <button class="btn btn-g" style="flex:1" onclick="closeMemberModal()">取消</button>
+                <button class="btn btn-p" style="flex:2" id="memberSubmitBtn" onclick="submitMember()"><i class="fas fa-check"></i> 确认添加</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== 事件弹窗 ===== -->
+    <div class="mask" id="eventMask" onclick="if(event.target===this)closeEventModal()">
+        <div class="sheet">
+            <div class="sh">
+                <h3 id="eventSheetTitle">⏰ 添加日程</h3>
+                <button class="icon-btn" onclick="closeEventModal()"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="sb">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">事件 <span class="req">*</span></label>
+                        <input type="text" class="form-input" id="eTitle" placeholder="例如：护士来量血压">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">时间 <span class="req">*</span></label>
+                        <input type="time" class="form-input" id="eTime" value="09:00">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">循环</label>
+                    <div class="repeat-opts">
+                        <div class="repeat-opt" data-rule="once" onclick="selRepeat('once')">不重复</div>
+                        <div class="repeat-opt sel" data-rule="daily" onclick="selRepeat('daily')">每天</div>
+                        <div class="repeat-opt" data-rule="weekday" onclick="selRepeat('weekday')">工作日</div>
+                        <div class="repeat-opt" data-rule="weekly" onclick="selRepeat('weekly')">每周</div>
+                    </div>
+                </div>
+                <div class="form-group" id="wdGroup" style="display:none">
+                    <label class="form-label">选择星期</label>
+                    <div class="wd-picker" id="wdPicker">
+                        <div class="wd-chip" data-day="0">一</div>
+                        <div class="wd-chip" data-day="1">二</div>
+                        <div class="wd-chip" data-day="2">三</div>
+                        <div class="wd-chip" data-day="3">四</div>
+                        <div class="wd-chip" data-day="4">五</div>
+                        <div class="wd-chip" data-day="5">六</div>
+                        <div class="wd-chip" data-day="6">日</div>
+                    </div>
+                </div>
+                <div class="form-group" id="dateGroup" style="display:none">
+                    <label class="form-label">具体日期</label>
+                    <input type="date" class="form-input" id="eDate">
+                </div>
+            </div>
+            <div class="sf">
+                <button class="btn btn-g" style="flex:1" onclick="closeEventModal()">取消</button>
+                <button class="btn btn-p" style="flex:2" onclick="submitEvent()"><i class="fas fa-check"></i> 保存</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== 老人画像弹窗 ===== -->
+    <div class="mask" id="elderMask" onclick="if(event.target===this)closeElderModal()">
+        <div class="sheet">
+            <div class="sh">
+                <h3>🧓 老人身份画像</h3>
+                <button class="icon-btn" onclick="closeElderModal()"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="sb">
+                <div class="profile-hint">
+                    <i class="fas fa-info-circle" style="color:var(--info)"></i>
+                    <span>老人是播报的收听者。了解她的身份和状况，AI 才能生成最贴合她真实状态的播报内容。</span>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">称呼 <span class="req">*</span></label>
+                        <input type="text" class="form-input" id="eName" placeholder="例如：奶奶、外婆、妈、爷爷">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">年龄</label>
+                        <input type="number" class="form-input" id="eAge" placeholder="例如：82" min="1" max="120">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">性别</label>
+                        <select class="form-input form-select" id="eGender">
+                            <option value="">请选择</option>
+                            <option value="女">女</option>
+                            <option value="男">男</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">学历</label>
+                        <select class="form-input form-select" id="eEducation">
+                            <option value="">请选择</option>
+                            <option value="未上学">未上学</option>
+                            <option value="小学">小学</option>
+                            <option value="初中">初中</option>
+                            <option value="高中/中专">高中/中专</option>
+                            <option value="大专">大专</option>
+                            <option value="大学及以上">大学及以上</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label"><i class="fas fa-stethoscope" style="color:var(--danger)"></i> 症状表现</label>
+                    <textarea class="form-input" id="eSymptoms" placeholder="例如：&#10;近期记忆丧失，经常忘记刚吃过饭&#10;有时认不出家人&#10;容易焦虑和不安" rows="3"></textarea>
+                </div>
+                <div class="form-group">
+                    <label class="form-label"><i class="fas fa-chart-line" style="color:var(--warm)"></i> 症状程度</label>
+                    <div class="severity-opts">
+                        <div class="sev-opt" data-val="轻度" onclick="selSeverity('轻度')">
+                            <div class="sev-dot" style="background:#10B981"></div>
+                            <span>轻度</span>
+                            <small>偶尔忘事，生活基本自理</small>
+                        </div>
+                        <div class="sev-opt" data-val="中度" onclick="selSeverity('中度')">
+                            <div class="sev-dot" style="background:#F59E0B"></div>
+                            <span>中度</span>
+                            <small>经常遗忘，需要日常提醒</small>
+                        </div>
+                        <div class="sev-opt" data-val="重度" onclick="selSeverity('重度')">
+                            <div class="sev-dot" style="background:#EF4444"></div>
+                            <span>重度</span>
+                            <small>认不出家人，需要全程照护</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label"><i class="fas fa-hand-holding-heart" style="color:#e0567a"></i> 家属最担心什么</label>
+                    <textarea class="form-input" id="eWorries" placeholder="例如：&#10;怕她走丢&#10;怕她一个人在家出意外&#10;怕她忘记我们" rows="3"></textarea>
+                </div>
+            </div>
+            <div class="sf">
+                <button class="btn btn-g" style="flex:1" onclick="closeElderModal()">取消</button>
+                <button class="btn btn-p" style="flex:2" onclick="submitElder()"><i class="fas fa-check"></i> 保存</button>
+            </div>
+        </div>
+    </div>
+
+<script>
+/* ===== 全局状态 ===== */
+let members=[],customEvents=[],editingMemberId=null,editingEventId=null,curRepeat='daily';
+let selPhoto=null,selVoice=null;
+let elderData=null,curSeverity='';
+
+/* ===== API: 老人画像 ===== */
+async function loadElder(){
+    try{const r=await fetch('/api/admin/elder');const d=await r.json();elderData=d.elder;renderElderCard()}catch(e){}
+}
+function renderElderCard(){
+    const e=elderData;
+    const nameEl=document.getElementById('elderNameDisplay');
+    const metaEl=document.getElementById('elderMetaDisplay');
+    const avatarEl=document.getElementById('elderAvatar');
+    const tagsRow=document.getElementById('elderTagsRow');
+    const tagsEl=document.getElementById('elderTags');
+    if(!e||!e.name){
+        nameEl.textContent='点击填写老人信息';
+        metaEl.innerHTML='<span>尚未填写老人身份画像</span>';
+        avatarEl.classList.remove('filled');
+        avatarEl.innerHTML='<i class="fas fa-user-clock"></i>';
+        tagsRow.style.display='none';
+        document.getElementById('elderCard').onclick=()=>openElderModal();
+        return;
+    }
+    document.getElementById('elderCard').onclick=null;
+    avatarEl.classList.add('filled');
+    avatarEl.innerHTML=e.gender==='女'?'<i class="fas fa-grandmother"></i>':'<i class="fas fa-grandfather"></i>';
+    if(!avatarEl.innerHTML||avatarEl.innerHTML.includes('grand'))avatarEl.innerHTML='<i class="fas fa-user"></i>';
+    nameEl.textContent=e.name;
+    let metaParts=[];
+    if(e.age)metaParts.push(e.age+'岁');
+    if(e.gender)metaParts.push(e.gender);
+    if(e.education)metaParts.push(e.education);
+    if(e.severity)metaParts.push('症状：'+e.severity);
+    metaEl.innerHTML=metaParts.map(p=>`<span>${p}</span>`).join('<span style="color:var(--border)">·</span>');
+    let tags='';
+    if(e.age)tags+=`<span class="etag etag-age"><i class="fas fa-birthday-cake"></i>${e.age}岁</span>`;
+    if(e.gender)tags+=`<span class="etag etag-gender"><i class="fas fa-${e.gender==='女'?'venus':'mars'}"></i>${e.gender}</span>`;
+    if(e.education)tags+=`<span class="etag etag-edu"><i class="fas fa-graduation-cap"></i>${e.education}</span>`;
+    if(e.severity)tags+=`<span class="etag etag-severity"><i class="fas fa-chart-line"></i>${e.severity}</span>`;
+    if(e.symptoms){e.symptoms.split(/[，,、\n]/).filter(s=>s.trim()).forEach(s=>{tags+=`<span class="etag etag-symptom"><i class="fas fa-stethoscope"></i>${s.trim()}</span>`})}
+    if(e.worries){e.worries.split(/[，,、\n]/).filter(s=>s.trim()).forEach(s=>{tags+=`<span class="etag etag-worry"><i class="fas fa-hand-holding-heart"></i>${s.trim()}</span>`})}
+    if(tags){tagsEl.innerHTML=tags;tagsRow.style.display='block'}else{tagsRow.style.display='none'}
+}
+function openElderModal(){
+    const e=elderData||{};
+    document.getElementById('eName').value=e.name||'';
+    document.getElementById('eAge').value=e.age||'';
+    document.getElementById('eGender').value=e.gender||'';
+    document.getElementById('eEducation').value=e.education||'';
+    document.getElementById('eSymptoms').value=e.symptoms||'';
+    document.getElementById('eWorries').value=e.worries||'';
+    curSeverity=e.severity||'';
+    selSeverity(curSeverity);
+    document.getElementById('elderMask').classList.add('show');
+}
+function closeElderModal(){document.getElementById('elderMask').classList.remove('show')}
+function selSeverity(val){
+    curSeverity=val;
+    document.querySelectorAll('.sev-opt').forEach(o=>o.classList.toggle('sel',o.dataset.val===val));
+}
+async function submitElder(){
+    const name=document.getElementById('eName').value.trim();
+    if(!name){toast('请填写老人的称呼');document.getElementById('eName').classList.add('err');return}
+    document.getElementById('eName').classList.remove('err');
+    const payload={
+        name,
+        age:document.getElementById('eAge').value?parseInt(document.getElementById('eAge').value):null,
+        gender:document.getElementById('eGender').value,
+        education:document.getElementById('eEducation').value,
+        symptoms:document.getElementById('eSymptoms').value.trim(),
+        severity:curSeverity,
+        worries:document.getElementById('eWorries').value.trim(),
+    };
+    try{
+        const r=await fetch('/api/admin/elder',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+        if(r.ok){const d=await r.json();elderData=d.elder;renderElderCard();closeElderModal();toast(`✅ ${name}的画像已保存`)}
+        else toast('保存失败');
+    }catch(e){toast('网络错误')}
+}
+
+/* ===== 初始化 ===== */
+document.addEventListener('DOMContentLoaded',async()=>{
+    await Promise.all([loadMembers(),loadEvents(),loadAppConfig(),loadElder()]);
+    // 支持 hash 路由：/config#tabMembers 或 /config#tabInfo
+    const hash = location.hash.replace('#','');
+    if(hash && (hash==='tabMembers' || hash==='tabInfo')){
+        switchTab(hash);
+    }
+});
+
+/* ===== Tab切换 ===== */
+function switchTab(id){
+    document.querySelectorAll('.tab-i').forEach(i=>i.classList.toggle('on',i.dataset.tab===id));
+    document.querySelectorAll('.tab-pane').forEach(p=>p.classList.toggle('on',p.id===id));
+}
+
+/* ===== API: 成员 ===== */
+async function loadMembers(){
+    try{const r=await fetch('/api/members');members=(await r.json()).members||[];renderMembers();updateStats()}catch(e){toast('加载成员失败')}
+}
+function renderMembers(){
+    const box=document.getElementById('membersBox');
+    if(!members.length){box.innerHTML=`<div class="empty"><div class="empty-ic"><i class="fas fa-user-plus"></i></div><h4>还没有添加家庭成员</h4><p>点击上方「添加」开始配置</p></div>`;return}
+    box.innerHTML=members.map(m=>{
+        let tags='';
+        if(m.favorite_food)tags+=`<span class="tag tag-food"><i class="fas fa-utensils"></i>${m.favorite_food}</span>`;
+        if(m.favorite_color)tags+=`<span class="tag tag-color"><i class="fas fa-palette"></i>${m.favorite_color}</span>`;
+        if(m.personality)tags+=`<span class="tag tag-person"><i class="fas fa-smile"></i>${m.personality}</span>`;
+        if(m.catchphrase)tags+=`<span class="tag tag-quote"><i class="fas fa-comment-dots"></i>「${m.catchphrase}」</span>`;
+        let spec='',mem='';
+        if(m.special_memory)spec=`<div class="special-block"><i class="fas fa-star" style="color:#e0567a;margin-right:3px;font-size:10px"></i>${m.special_memory}</div>`;
+        if(m.memory_snippets)mem=`<div class="memory-block"><i class="fas fa-book-open" style="color:var(--primary);margin-right:3px;font-size:10px"></i>${m.memory_snippets}</div>`;
+        return `<div class="m-card">
+            <div class="top-bar"></div>
+            <div class="m-acts">
+                <button class="icon-btn" onclick="openEditMember(${m.id})" title="编辑"><i class="fas fa-pen" style="font-size:12px;color:var(--accent)"></i></button>
+                <button class="icon-btn" onclick="deleteMember(${m.id})" title="删除"><i class="fas fa-trash-alt" style="font-size:12px;color:var(--danger)"></i></button>
+            </div>
+            <div class="hd">
+                <div class="avatar">${m.photo_path?`<img src="${m.photo_path}" alt="${m.name}">`:'<i class="fas fa-user"></i>'}</div>
+                <div class="info"><h4>${m.name}</h4><span class="rel-badge"><i class="fas fa-heart" style="font-size:9px"></i> ${m.relation}</span></div>
+            </div>
+            <div class="status-row">
+                ${m.photo_path?`<div class="st-item"><span class="st-dot done"></span>照片已上传</div>`:''}
+                ${m.voice_status==='cloned'?`<div class="st-item"><span class="st-dot done"></span>声音已克隆</div>`:
+                  m.voice_status==='cloning'?`<div class="st-item"><span class="st-dot pend"></span>声音克隆中...</div>`:
+                  m.voice_status==='failed'?`<div class="st-item" title="${m.voice_error||''}"><span class="st-dot" style="background:#e74c3c"></span>克隆失败<span style="font-size:11px;color:#e74c3c;margin-left:4px">(${m.voice_error||'未知错误'})</span></div>`:
+                  m.has_voice?`<div class="st-item"><span class="st-dot pend"></span>声音待克隆</div>`:''}
+            </div>
+            ${tags?`<div class="tags">${tags}</div>`:''}
+            ${spec}${mem}
+        </div>`;
+    }).join('');
+}
+function updateStats(){
+    document.getElementById('statMembers').textContent=members.length;
+    document.getElementById('statEvents').textContent=customEvents.length;
+    document.getElementById('statPhotos').textContent=members.filter(m=>m.photo_path).length;
+}
+
+/* ===== 成员弹窗 ===== */
+function openMemberModal(){
+    editingMemberId=null;
+    document.getElementById('memberSheetTitle').textContent='✨ 添加家庭成员';
+    document.getElementById('memberSubmitBtn').innerHTML='<i class="fas fa-check"></i> 确认添加';
+    ['fName','fRelation','fFood','fColor','fPersonality','fCatchphrase','fSpecial','fMemory'].forEach(id=>{
+        const el=document.getElementById(id);if(el){el.value='';el.classList.remove('err')}
+    });
+    selPhoto=null;selVoice=null;
+    document.getElementById('photoFn').textContent='';
+    document.getElementById('voiceFn').textContent='';
+    document.getElementById('photoZone').classList.remove('has');
+    document.getElementById('voiceZone').classList.remove('has');
+    document.getElementById('memberMask').classList.add('show');
+}
+function openEditMember(id){
+    const m=members.find(x=>x.id===id);if(!m)return;
+    editingMemberId=id;
+    document.getElementById('memberSheetTitle').textContent='✏️ 编辑家庭成员';
+    document.getElementById('memberSubmitBtn').innerHTML='<i class="fas fa-check"></i> 保存修改';
+    document.getElementById('fName').value=m.name||'';
+    document.getElementById('fRelation').value=m.relation||'';
+    document.getElementById('fFood').value=m.favorite_food||'';
+    document.getElementById('fColor').value=m.favorite_color||'';
+    document.getElementById('fPersonality').value=m.personality||'';
+    document.getElementById('fCatchphrase').value=m.catchphrase||'';
+    document.getElementById('fSpecial').value=m.special_memory||'';
+    document.getElementById('fMemory').value=m.memory_snippets||'';
+    document.querySelectorAll('#memberMask .err').forEach(el=>el.classList.remove('err'));
+    selPhoto=null;selVoice=null;
+    document.getElementById('photoFn').textContent='';
+    document.getElementById('voiceFn').textContent='';
+    document.getElementById('photoZone').classList.remove('has');
+    document.getElementById('voiceZone').classList.remove('has');
+    document.getElementById('memberMask').classList.add('show');
+}
+function closeMemberModal(){document.getElementById('memberMask').classList.remove('show');editingMemberId=null}
+function handlePhoto(input){if(input.files&&input.files[0]){selPhoto=input.files[0];document.getElementById('photoFn').textContent=selPhoto.name;document.getElementById('photoZone').classList.add('has')}}
+function handleVoice(input){if(input.files&&input.files[0]){selVoice=input.files[0];document.getElementById('voiceFn').textContent=selVoice.name;document.getElementById('voiceZone').classList.add('has')}}
+
+async function submitMember(){
+    const fields={name:{id:'fName',label:'姓名',req:true},relation:{id:'fRelation',label:'与患者关系',req:true},favorite_food:{id:'fFood',label:'最爱吃什么',req:true},favorite_color:{id:'fColor',label:'最喜欢的颜色',req:true},personality:{id:'fPersonality',label:'性格特点',req:true},catchphrase:{id:'fCatchphrase',label:'口头禅',req:false},special_memory:{id:'fSpecial',label:'最难忘的一件事',req:true},memory_snippets:{id:'fMemory',label:'其它共同记忆',req:false}};
+    const vals={};const missing=[];
+    Object.entries(fields).forEach(([k,cfg])=>{
+        const el=document.getElementById(cfg.id);const v=(el.value||'').trim();vals[k]=v;el.classList.remove('err');
+        if(cfg.req&&!v){missing.push(cfg.label);el.classList.add('err')}
+    });
+    if(missing.length){toast(`请填写：${missing.join('、')}`);return}
+    const fd=new FormData();
+    Object.entries(vals).forEach(([k,v])=>fd.append(k,v));
+    if(selPhoto)fd.append('photo',selPhoto);
+    if(selVoice)fd.append('voice_sample',selVoice);
+    try{
+        const url=editingMemberId?`/api/members/${editingMemberId}`:'/api/members';
+        const method=editingMemberId?'PUT':'POST';
+        const r=await fetch(url,{method,body:fd});
+        if(r.ok){toast(editingMemberId?`✅ ${vals.name} 已更新`:`✅ ${vals.name} 已添加`);closeMemberModal();await loadMembers()}
+        else{let msg='操作失败';try{const d=await r.json();if(d.detail)msg=d.detail}catch(e){}toast(msg)}
+    }catch(e){toast('网络错误')}
+}
+
+async function deleteMember(id){
+    const m=members.find(x=>x.id===id);if(!m)return;
+    if(!confirm(`确定删除「${m.name}」吗？`))return;
+    try{await fetch(`/api/members/${id}`,{method:'DELETE'});toast(`已删除「${m.name}」`);await loadMembers()}catch(e){toast('删除失败')}
+}
+
+/* ===== API: 事件 ===== */
+const RLBL={once:'不重复',daily:'每天',weekday:'工作日',weekly:'每周'};
+const DLBL=['一','二','三','四','五','六','日'];
+
+async function loadEvents(){
+    try{const r=await fetch('/api/admin/events');if(!r.ok){toast('加载日程失败');return}customEvents=(await r.json()).events||[];renderEvents()}catch(e){toast('加载日程失败')}
+}
+function renderEvents(){
+    const box=document.getElementById('eventsBox');
+    if(!customEvents.length){box.innerHTML=`<div class="empty"><div class="empty-ic"><i class="fas fa-bell"></i></div><h4>还没有日程</h4><p>像闹钟一样添加事件</p></div>`;return}
+    box.innerHTML=customEvents.map(e=>{
+        let badges=`<span class="ev-badge repeat"><i class="fas fa-repeat"></i> ${RLBL[e.repeat_rule]||'每天'}</span>`;
+        if(e.repeat_rule==='weekly'&&e.repeat_days)badges+=e.repeat_days.split(',').filter(d=>d!=='').map(d=>`<span class="ev-badge day">周${DLBL[parseInt(d)]}</span>`).join('');
+        if(e.repeat_rule==='once'&&e.event_date)badges+=`<span class="ev-badge day">${e.event_date}</span>`;
+        return `<div class="ev-item ${e.is_active?'':'off'}">
+            <div class="ev-time">${e.event_time}</div>
+            <div class="ev-main">
+                <div class="ev-title">${e.title}</div>
+                <div class="ev-badges">${badges}</div>
+            </div>
+            <div class="ev-ctrl">
+                <label class="sw"><input type="checkbox" ${e.is_active?'checked':''} onchange="toggleEvent(${e.id},this.checked)"><span class="sl"></span></label>
+                <button class="icon-btn" style="width:28px;height:28px;font-size:12px" onclick="openEditEvent(${e.id})"><i class="fas fa-pen" style="color:var(--accent)"></i></button>
+                <button class="icon-btn" style="width:28px;height:28px;font-size:12px" onclick="deleteEvent(${e.id})"><i class="fas fa-trash-alt" style="color:var(--danger)"></i></button>
+            </div>
+        </div>`;
+    }).join('');
+}
+
+function openEventModal(id){
+    editingEventId=id||null;
+    const ev=id?customEvents.find(e=>e.id===id):null;
+    document.getElementById('eventSheetTitle').textContent=ev?'⏰ 编辑日程':'⏰ 添加日程';
+    document.getElementById('eTitle').value=ev?ev.title:'';
+    document.getElementById('eTime').value=ev?ev.event_time:'09:00';
+    document.getElementById('eDate').value=ev&&ev.event_date?ev.event_date:'';
+    document.querySelectorAll('.wd-chip').forEach(c=>c.classList.remove('sel'));
+    if(ev&&ev.repeat_days)ev.repeat_days.split(',').forEach(d=>{const c=document.querySelector(`.wd-chip[data-day="${d.trim()}"]`);if(c)c.classList.add('sel')});
+    selRepeat(ev?ev.repeat_rule:'daily');
+    document.getElementById('eventMask').classList.add('show');
+}
+function openEditEvent(id){openEventModal(id)}
+function closeEventModal(){document.getElementById('eventMask').classList.remove('show');editingEventId=null}
+
+function selRepeat(rule){
+    curRepeat=rule;
+    document.querySelectorAll('.repeat-opt').forEach(o=>o.classList.toggle('sel',o.dataset.rule===rule));
+    document.getElementById('wdGroup').style.display=rule==='weekly'?'block':'none';
+    document.getElementById('dateGroup').style.display=rule==='once'?'block':'none';
+}
+document.addEventListener('click',e=>{if(e.target.classList&&e.target.classList.contains('wd-chip'))e.target.classList.toggle('sel')});
+
+async function submitEvent(){
+    const title=document.getElementById('eTitle').value.trim();
+    const time=document.getElementById('eTime').value;
+    if(!title||!time){toast('请填写事件和时间');return}
+    let repeat_days='';
+    if(curRepeat==='weekly'){const days=[...document.querySelectorAll('.wd-chip.sel')].map(c=>c.dataset.day);if(!days.length){toast('请选择星期');return}repeat_days=days.join(',')}
+    let event_date='';
+    if(curRepeat==='once'){event_date=document.getElementById('eDate').value;if(!event_date){toast('请选择日期');return}}
+    const payload={title,event_time:time,repeat_rule:curRepeat,repeat_days,event_date,is_active:true};
+    if(editingEventId){const old=customEvents.find(e=>e.id===editingEventId);payload.is_active=old?old.is_active:true}
+    try{
+        const url=editingEventId?`/api/admin/events/${editingEventId}`:'/api/admin/events';
+        const method=editingEventId?'PUT':'POST';
+        const r=await fetch(url,{method,headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+        if(r.ok){toast(editingEventId?'✅ 已更新':'✅ 已添加');closeEventModal();await loadEvents()}
+        else toast('保存失败');
+    }catch(e){toast('网络错误')}
+}
+async function toggleEvent(id,active){
+    const ev=customEvents.find(e=>e.id===id);if(!ev)return;
+    try{await fetch(`/api/admin/events/${id}`,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({title:ev.title,event_time:ev.event_time,repeat_rule:ev.repeat_rule,repeat_days:ev.repeat_days,event_date:ev.event_date,is_active:active})});ev.is_active=active;renderEvents()}catch(e){toast('操作失败')}
+}
+async function deleteEvent(id){
+    const ev=customEvents.find(e=>e.id===id);if(!ev||!confirm(`删除「${ev.title}」？`))return;
+    try{await fetch(`/api/admin/events/${id}`,{method:'DELETE'});toast('已删除');await loadEvents()}catch(e){toast('删除失败')}
+}
+
+/* ===== API: 配置 ===== */
+async function loadAppConfig(){
+    try{const r=await fetch('/api/admin/config');const d=await r.json();document.getElementById('cityInput').value=d.weather_city||'';const s=d.schedules||{};if(s.morning)document.getElementById('timeMorning').value=s.morning;if(s.noon)document.getElementById('timeNoon').value=s.noon;if(s.evening)document.getElementById('timeEvening').value=s.evening}catch(e){}
+}
+async function saveCity(){
+    const city=document.getElementById('cityInput').value.trim();if(!city){toast('请输入城市');return}
+    try{await fetch('/api/admin/config',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({weather_city:city})});toast(`✅ 城市已设为「${city}」`)}catch(e){toast('保存失败')}
+}
+async function saveSchedules(){
+    const schedules={morning:document.getElementById('timeMorning').value,noon:document.getElementById('timeNoon').value,evening:document.getElementById('timeEvening').value};
+    try{await fetch('/api/admin/config',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({schedules})});toast('⏰ 播放时间已保存')}catch(e){toast('保存失败')}
+}
+
+/* ===== Toast ===== */
+function toast(msg){const t=document.createElement('div');t.className='toast';t.textContent=msg;document.body.appendChild(t);setTimeout(()=>{t.style.opacity='0';t.style.transition='opacity .3s';setTimeout(()=>t.remove(),300)},2500)}
+</script>
+</body>
+</html>

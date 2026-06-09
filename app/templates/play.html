@@ -1,0 +1,882 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+    <title>Memory Companion</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root{--primary:#10B981;--primary-d:#059669;--primary-l:#D1FAE5;--accent:#8B5CF6;--accent-l:#EDE9FE;--warm:#F59E0B;--warm-l:#FEF3C7;--danger:#EF4444;--danger-l:#FEE2E2;--bg:#F0F2F5;--card:#FFF;--text:#191919;--text2:#666;--text3:#999;--border:#E5E5E5;--r:12px;--rl:16px;--safe-b:env(safe-area-inset-bottom,0px)}
+        *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+        body{font-family:'Noto Sans SC',-apple-system,BlinkMacSystemFont,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+        .nav-bar{position:sticky;top:0;z-index:100;background:var(--card);border-bottom:1px solid var(--border);padding:10px 16px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 1px 4px rgba(0,0,0,.04)}
+        .nav-bar .brand{display:flex;align-items:center;gap:10px}
+        .nav-bar .logo{width:32px;height:32px;background:linear-gradient(135deg,var(--primary),var(--accent));border-radius:8px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:14px}
+        .nav-bar .title{font-size:17px;font-weight:600}
+        .nav-bar .conn{font-size:11px;color:var(--text3);display:flex;align-items:center;gap:4px}
+        .nav-bar .conn .dot{width:6px;height:6px;border-radius:50%;background:var(--danger)}
+        .nav-bar .conn .dot.on{background:var(--primary);animation:blink 1.5s infinite}
+        .icon-btn{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;border:none;background:transparent;color:var(--text2);font-size:18px;cursor:pointer}
+        .icon-btn:active{background:var(--bg)}
+        .period-scroll{display:flex;gap:10px;padding:12px 16px;overflow-x:auto;-webkit-overflow-scrolling:touch}
+        .period-scroll::-webkit-scrollbar{display:none}
+        .p-chip{flex-shrink:0;padding:8px 18px;border-radius:20px;font-size:14px;font-weight:500;border:1.5px solid var(--border);background:var(--card);color:var(--text2);cursor:pointer;transition:all .25s;display:flex;align-items:center;gap:6px}
+        .p-chip.active{border-color:var(--primary);background:var(--primary-l);color:var(--primary-d);font-weight:600}
+        .content{padding:0 16px 90px}
+        .tab-pane{display:none}.tab-pane.on{display:block;animation:fadeUp .3s}
+        .bcard{background:var(--card);border-radius:var(--rl);padding:20px;margin-bottom:14px;box-shadow:0 2px 8px rgba(0,0,0,.04)}
+        .bcard .hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+        .bcard .hd h3{font-size:16px;font-weight:600;display:flex;align-items:center;gap:8px}
+        .badge{padding:3px 10px;border-radius:12px;font-size:11px;font-weight:600}
+        .badge.draft{background:var(--warm-l);color:#92400E}
+        .badge.approved{background:var(--primary-l);color:var(--primary-d)}
+        .badge.rejected{background:var(--danger-l);color:var(--danger)}
+        .badge.pending{background:#F3F4F6;color:var(--text3)}
+        .badge.generated{background:var(--primary-l);color:var(--primary-d)}
+
+        /* ===== 播放模式指示器 ===== */
+        .mode-indicator{display:flex;align-items:center;gap:8px;margin-bottom:12px;padding:8px 14px;background:linear-gradient(135deg,#F0FDF4,#ECFDF5);border-radius:10px;font-size:13px;color:var(--primary-d);transition:all .3s}
+        .mode-indicator.focused{background:linear-gradient(135deg,#EDE9FE,#F5F3FF);color:var(--accent)}
+        .mode-indicator i{font-size:15px}
+        .mode-indicator .mode-text{font-weight:600}
+        .mode-indicator .mode-member{font-weight:700;color:var(--accent)}
+
+        /* ===== 家人头像（小头像栏）===== */
+        .avatars-section{margin-bottom:14px}
+        .avatars{display:flex;gap:10px;overflow-x:auto;padding:4px 0 8px;-webkit-overflow-scrolling:touch;scroll-snap-type:x mandatory}
+        .avatars::-webkit-scrollbar{display:none}
+        .av{flex-shrink:0;text-align:center;transition:all .35s cubic-bezier(.34,1.56,.64,1);scroll-snap-align:center;position:relative;cursor:pointer}
+        .av .img{width:56px;height:56px;border-radius:50%;background:var(--primary-l);display:flex;align-items:center;justify-content:center;font-size:20px;color:var(--primary);overflow:hidden;border:3px solid transparent;transition:all .4s cubic-bezier(.34,1.56,.64,1);position:relative}
+        .av .img img{width:100%;height:100%;object-fit:cover}
+        .av.on .img{border-color:var(--primary);box-shadow:0 0 24px rgba(16,185,129,.4);transform:scale(1.15)}
+        .av.focused .img{border-color:var(--accent);box-shadow:0 0 24px rgba(139,92,246,.4);transform:scale(1.15)}
+        .av .nm{font-size:11px;color:var(--text3);margin-top:4px;white-space:nowrap;transition:color .3s}
+        .av.on .nm{color:var(--primary-d);font-weight:600}
+        .av.focused .nm{color:var(--accent);font-weight:600}
+        /* 播放进度环 */
+        .av .progress-ring{position:absolute;inset:-3px;border-radius:50%;pointer-events:none}
+        .av .progress-ring circle{fill:none;stroke-width:3;stroke-linecap:round;transform:rotate(-90deg);transform-origin:center;transition:stroke-dashoffset .2s linear}
+
+        /* ===== 片段进度条 ===== */
+        .segment-bar{display:flex;gap:4px;margin:8px 0 4px;height:6px;border-radius:3px;overflow:hidden}
+        .segment-bar .seg{height:100%;border-radius:3px;background:var(--border);transition:all .4s;position:relative;overflow:hidden;cursor:pointer}
+        .segment-bar .seg.on{background:var(--primary-l)}
+        .segment-bar .seg.focused-seg{background:var(--accent-l)}
+        .segment-bar .seg .seg-fill{position:absolute;inset:0;border-radius:3px;background:var(--primary);width:0%;transition:width .2s linear}
+        .segment-bar .seg.focused-seg .seg-fill{background:var(--accent)}
+
+        /* ===== 文稿高亮 ===== */
+        .script{font-size:17px;line-height:2;color:var(--text);padding:10px 0;min-height:80px;transition:all .3s}
+        .script.empty{color:var(--text3);font-size:15px}
+        .script .hl{background:linear-gradient(180deg,transparent 60%,var(--primary-l) 60%);border-radius:2px;padding:0 2px;font-weight:600;transition:background .3s}
+        .script .hl.focused-hl{background:linear-gradient(180deg,transparent 60%,var(--accent-l) 60%)}
+
+        .wave{display:flex;align-items:center;justify-content:center;gap:3px;height:30px;margin:6px 0}
+        .wave span{width:4px;height:8px;border-radius:2px;background:var(--primary);transition:height .15s}
+        .wave.on span{animation:wv .8s infinite ease-in-out}
+        .wave.on span:nth-child(2){animation-delay:.1s}.wave.on span:nth-child(3){animation-delay:.2s}
+        .wave.on span:nth-child(4){animation-delay:.3s}.wave.on span:nth-child(5){animation-delay:.4s}
+        .wave.on span:nth-child(6){animation-delay:.3s}.wave.on span:nth-child(7){animation-delay:.2s}
+        @keyframes wv{0%,100%{height:8px}50%{height:26px}}
+        .player{display:flex;align-items:center;gap:12px;padding:6px 0}
+        .player .tm{font-size:12px;color:var(--text3);min-width:36px;font-variant-numeric:tabular-nums}
+        .player .trk{flex:1;height:4px;background:#E5E7EB;border-radius:2px;cursor:pointer;position:relative}
+        .player .fill{height:100%;background:var(--primary);border-radius:2px;width:0%;transition:width .2s linear}
+        .play-btn{width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,var(--primary),var(--primary-d));color:#fff;font-size:20px;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 16px rgba(16,185,129,.3);transition:transform .15s}
+        .play-btn:active{transform:scale(.92)}
+        .ctrl{width:38px;height:38px;border-radius:50%;background:var(--bg);border:none;color:var(--text2);font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s}
+        .ctrl:hover{color:var(--primary);background:var(--primary-l)}
+        .ctrl.active{color:var(--accent);background:var(--accent-l)}
+        .guard-row{display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-top:1px solid var(--border);margin-top:10px}
+        .guard-row .lb{font-size:14px;color:var(--text2);display:flex;align-items:center;gap:6px}
+        .sw{position:relative;width:44px;height:26px}
+        .sw input{display:none}
+        .sw .sl{position:absolute;inset:0;background:#CBD5E1;border-radius:26px;cursor:pointer;transition:.3s}
+        .sw .sl::before{content:'';position:absolute;width:22px;height:22px;left:2px;bottom:2px;background:#fff;border-radius:50%;transition:.3s;box-shadow:0 1px 3px rgba(0,0,0,.2)}
+        .sw input:checked+.sl{background:var(--primary)}
+        .sw input:checked+.sl::before{transform:translateX(18px)}
+        .actions-bar{display:flex;gap:10px;margin-top:12px;flex-wrap:wrap}
+        .btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:8px 16px;border-radius:8px;font-size:13px;font-weight:500;border:none;cursor:pointer;font-family:inherit;transition:all .2s}
+        .btn:active{transform:scale(.96)}
+        .btn-p{background:var(--primary);color:#fff}.btn-o{background:transparent;color:var(--primary);border:1.5px solid var(--primary)}
+        .btn-w{background:var(--warm);color:#fff}.btn-d{background:transparent;color:var(--danger);border:1.5px solid var(--danger)}
+        .btn-g{background:var(--bg);color:var(--text2)}.btn-block{width:100%;padding:12px;font-size:15px;font-weight:600}
+        .btn-sm{padding:6px 12px;font-size:12px}
+        .tab-bar{position:fixed;bottom:0;left:0;right:0;background:var(--card);border-top:1px solid var(--border);display:flex;z-index:100;padding-bottom:var(--safe-b)}
+        .tab-i{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:8px 0 6px;cursor:pointer;color:var(--text3);transition:color .2s;border:none;background:none;font-family:inherit;position:relative}
+        .tab-i.on{color:var(--primary)}
+        .tab-i i{font-size:22px;margin-bottom:2px}
+        .tab-i span{font-size:11px}
+        .mask{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;display:none;align-items:flex-end;justify-content:center}
+        .mask.show{display:flex;animation:fadeIn .2s}
+        .sheet{background:var(--card);border-radius:16px 16px 0 0;width:100%;max-height:85vh;overflow-y:auto;animation:slideUp .3s cubic-bezier(.34,1.56,.64,1)}
+        .sheet .sh{padding:16px 20px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border)}
+        .sheet .sh h3{font-size:16px;font-weight:600}
+        .sheet .sb{padding:20px}
+        .sheet .sb textarea{width:100%;min-height:180px;border:1.5px solid var(--border);border-radius:var(--r);padding:12px;font-size:15px;line-height:1.7;font-family:inherit;color:var(--text);resize:vertical;background:var(--bg)}
+        .sheet .sb textarea:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 3px rgba(16,185,129,.1)}
+        .sheet .sf{padding:16px 20px;display:flex;gap:10px;padding-bottom:calc(16px + var(--safe-b))}
+        .cost-mini{display:flex;align-items:center;gap:10px;padding:10px 12px;background:#F9FAFB;border-radius:var(--r);margin-top:10px}
+        .cost-mini .bar{flex:1;height:5px;background:#E5E7EB;border-radius:3px;overflow:hidden}
+        .cost-mini .fill{height:100%;border-radius:3px;background:var(--primary);transition:width .5s}
+        .cost-mini .tx{font-size:11px;color:var(--text3);white-space:nowrap}
+        .empty{text-align:center;padding:48px 24px;color:var(--text3)}
+        .empty i{font-size:48px;margin-bottom:12px;color:var(--border)}
+        .empty p{font-size:14px;margin-top:8px}
+        .toast{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,.76);color:#fff;padding:12px 24px;border-radius:8px;font-size:14px;z-index:999;pointer-events:none;animation:fadeIn .2s;max-width:80%;text-align:center}
+        .quota-modal{background:var(--card);border-radius:var(--rl);padding:28px 24px;width:85%;max-width:360px;text-align:center}
+        .quota-modal .ic{width:56px;height:56px;border-radius:50%;background:var(--danger-l);display:flex;align-items:center;justify-content:center;margin:0 auto 14px;font-size:24px;color:var(--danger)}
+        .quota-modal h3{font-size:18px;font-weight:600;margin-bottom:8px}
+        .quota-modal p{font-size:14px;color:var(--text2);line-height:1.6;margin-bottom:18px}
+        @keyframes blink{0%,100%{opacity:1}50%{opacity:.4}}
+        @keyframes fadeIn{from{opacity:0}to{opacity:1}}
+        @keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+        @keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+        @keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(16,185,129,.4)}50%{box-shadow:0 0 0 10px rgba(16,185,129,0)}}
+
+        /* ===== 满屏头像浮层（核心新交互）===== */
+        .fullscreen-avatar{position:fixed;inset:0;z-index:500;background:radial-gradient(ellipse at center,rgba(0,0,0,.65) 0%,rgba(0,0,0,.88) 100%);display:none;align-items:center;justify-content:center;flex-direction:column;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);opacity:0;transition:opacity .4s}
+        .fullscreen-avatar.show{display:flex;opacity:1;animation:fadeIn .4s}
+        .fullscreen-avatar .fs-avatar-wrap{position:relative;margin-bottom:0}
+        .fullscreen-avatar .fs-avatar{width:220px;height:220px;border-radius:50%;background:linear-gradient(135deg,var(--primary-l),var(--accent-l));display:flex;align-items:center;justify-content:center;font-size:80px;color:var(--primary);overflow:hidden;border:5px solid rgba(255,255,255,.85);box-shadow:0 0 80px rgba(16,185,129,.25),0 8px 40px rgba(0,0,0,.4);transform:scale(.4);opacity:0;transition:transform .5s cubic-bezier(.34,1.56,.64,1),opacity .35s}
+        .fullscreen-avatar.show .fs-avatar{transform:scale(1);opacity:1}
+        .fullscreen-avatar .fs-avatar img{width:100%;height:100%;object-fit:cover}
+        .fullscreen-avatar .fs-name{margin-top:28px;font-size:32px;font-weight:700;color:#fff;text-shadow:0 2px 12px rgba(0,0,0,.4);opacity:0;transform:translateY(16px);transition:all .4s .15s}
+        .fullscreen-avatar.show .fs-name{opacity:1;transform:translateY(0)}
+        .fullscreen-avatar .fs-relation{margin-top:10px;font-size:17px;color:rgba(255,255,255,.6);opacity:0;transform:translateY(16px);transition:all .4s .25s}
+        .fullscreen-avatar.show .fs-relation{opacity:1;transform:translateY(0)}
+        .fullscreen-avatar .fs-script{margin-top:24px;padding:0 32px;font-size:18px;line-height:1.9;color:rgba(255,255,255,.85);text-align:center;max-width:500px;opacity:0;transform:translateY(16px);transition:all .4s .35s}
+        .fullscreen-avatar.show .fs-script{opacity:1;transform:translateY(0)}
+        /* 声波动画 */
+        .fullscreen-avatar .fs-wave{display:flex;align-items:center;justify-content:center;gap:4px;height:36px;margin-top:20px;opacity:0;transition:opacity .3s .4s}
+        .fullscreen-avatar.show .fs-wave{opacity:1}
+        .fullscreen-avatar .fs-wave span{width:5px;height:12px;border-radius:3px;background:rgba(255,255,255,.5);transition:height .15s}
+        .fullscreen-avatar .fs-wave.on span{animation:fsw .8s infinite ease-in-out;background:var(--primary)}
+        .fullscreen-avatar .fs-wave.on span:nth-child(2){animation-delay:.1s}.fullscreen-avatar .fs-wave.on span:nth-child(3){animation-delay:.2s}
+        .fullscreen-avatar .fs-wave.on span:nth-child(4){animation-delay:.3s}.fullscreen-avatar .fs-wave.on span:nth-child(5){animation-delay:.4s}
+        .fullscreen-avatar .fs-wave.on span:nth-child(6){animation-delay:.3s}.fullscreen-avatar .fs-wave.on span:nth-child(7){animation-delay:.2s}
+        @keyframes fsw{0%,100%{height:12px}50%{height:32px}}
+        /* 退出倒计时 */
+        .fullscreen-avatar .fs-exit-hint{margin-top:28px;font-size:12px;color:rgba(255,255,255,.3);opacity:0;transition:opacity .3s .5s}
+        .fullscreen-avatar.show .fs-exit-hint{opacity:1}
+        /* 点击切换小头像时：满屏头像退场动画 */
+        .fullscreen-avatar.exiting .fs-avatar{transform:scale(1.1);opacity:0;transition:all .25s}
+        .fullscreen-avatar.exiting .fs-name,
+        .fullscreen-avatar.exiting .fs-relation,
+        .fullscreen-avatar.exiting .fs-script,
+        .fullscreen-avatar.exiting .fs-wave,
+        .fullscreen-avatar.exiting .fs-exit-hint{opacity:0;transition:all .2s}
+        .fullscreen-avatar.exiting{opacity:0;transition:opacity .3s .15s}
+
+        /* ===== 切换反馈 ===== */
+        .switch-toast{position:fixed;top:45%;left:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,.82);color:#fff;padding:16px 28px;border-radius:16px;font-size:15px;z-index:600;pointer-events:none;animation:switchIn .3s cubic-bezier(.34,1.56,.64,1);display:flex;align-items:center;gap:10px;backdrop-filter:blur(6px)}
+        .switch-toast .switch-av{width:36px;height:36px;border-radius:50%;background:var(--accent-l);display:flex;align-items:center;justify-content:center;font-size:14px;color:var(--accent);overflow:hidden}
+        .switch-toast .switch-av img{width:100%;height:100%;object-fit:cover}
+        @keyframes switchIn{from{opacity:0;transform:translate(-50%,-50%) scale(.7)}to{opacity:1;transform:translate(-50%,-50%) scale(1)}}
+    </style>
+</head>
+<body>
+    <!-- 导航栏 -->
+    <div class="nav-bar">
+        <div class="brand"><div class="logo"><i class="fas fa-heart"></i></div><div class="title">Memory Companion</div></div>
+        <div style="display:flex;align-items:center;gap:8px">
+            <div class="conn"><span class="dot" id="cDot"></span><span id="cTxt">未连接</span></div>
+        </div>
+    </div>
+
+    <!-- 时段选择 -->
+    <div class="period-scroll" id="pTabs">
+        <div class="p-chip active" data-p="morning" onclick="switchPeriod('morning')">🌅 早安播报</div>
+        <div class="p-chip" data-p="noon" onclick="switchPeriod('noon')">🌤 午间认人</div>
+        <div class="p-chip" data-p="evening" onclick="switchPeriod('evening')">🌙 晚安陪伴</div>
+    </div>
+
+    <!-- 内容区 -->
+    <div class="content">
+        <div class="tab-pane on" id="tabPlay">
+            <div class="bcard" id="bcard">
+                <div class="hd">
+                    <h3 id="cardTitle">📻 今日播报</h3>
+                    <span class="badge pending" id="statusBadge">未生成</span>
+                </div>
+
+                <!-- 播放模式指示器 -->
+                <div class="mode-indicator" id="modeIndicator">
+                    <i class="fas fa-play-circle"></i>
+                    <span class="mode-text" id="modeText">顺序播放全部</span>
+                </div>
+
+                <!-- 家人头像（小头像栏 - 可点击切换）-->
+                <div class="avatars-section">
+                    <div class="avatars" id="avatars"></div>
+                    <div class="segment-bar" id="segmentBar"></div>
+                </div>
+
+                <div class="script empty" id="scriptEl">今日播报尚未生成，请先生成</div>
+                <div class="wave" id="waveEl"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
+                <div class="player">
+                    <span class="tm" id="curTm">0:00</span>
+                    <div class="trk" onclick="seek(event)"><div class="fill" id="progFill"></div></div>
+                    <span class="tm" id="totTm">0:00</span>
+                    <button class="ctrl" onclick="replay()" title="重播"><i class="fas fa-redo-alt"></i></button>
+                    <button class="play-btn" id="playBtn" onclick="togglePlay()"><i class="fas fa-play" id="playIco"></i></button>
+                    <button class="ctrl" onclick="genTTS()" title="生成语音"><i class="fas fa-microphone"></i></button>
+                </div>
+                <div class="guard-row">
+                    <div class="lb"><i class="fas fa-shield-heart"></i> 守护模式 · 到点自动播报</div>
+                    <label class="sw"><input type="checkbox" id="guardSw" onchange="toggleGuard()"><span class="sl"></span></label>
+                </div>
+                <div class="cost-mini" id="costMini">
+                    <div class="tx">TTS</div>
+                    <div class="bar"><div class="fill" id="costFill" style="width:0%"></div></div>
+                    <div class="tx" id="costTx">¥0/¥50</div>
+                </div>
+            </div>
+            <div class="actions-bar">
+                <button class="btn btn-p" onclick="testPush('morning')"><i class="fas fa-satellite-dish"></i> 推送早安</button>
+                <button class="btn btn-p" onclick="testPush('noon')"><i class="fas fa-satellite-dish"></i> 推送午间</button>
+                <button class="btn btn-p" onclick="testPush('evening')"><i class="fas fa-satellite-dish"></i> 推送晚安</button>
+                <button class="btn btn-g" onclick="checkStatus()"><i class="fas fa-info-circle"></i> 状态</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 底部Tab -->
+    <div class="tab-bar">
+        <button class="tab-i on" data-tab="play" onclick="switchTab('play')"><i class="fas fa-play-circle"></i><span>播放</span></button>
+        <a class="tab-i" data-tab="tabMembers" href="/config#tabMembers"><i class="fas fa-users"></i><span>家属</span></a>
+        <a class="tab-i" data-tab="tabInfo" href="/config#tabInfo"><i class="fas fa-calendar-alt"></i><span>信息</span></a>
+    </div>
+
+    <!-- 限额弹窗 -->
+    <div class="mask" id="quotaMask" onclick="if(event.target===this)this.classList.remove('show')" style="align-items:center">
+        <div class="quota-modal">
+            <div class="ic"><i class="fas fa-exclamation-triangle"></i></div>
+            <h3>费用限额不足</h3>
+            <p id="quotaMsg">TTS语音合成费用已达上限</p>
+            <button class="btn btn-p btn-block" onclick="document.getElementById('quotaMask').classList.remove('show')">我知道了</button>
+        </div>
+    </div>
+
+    <!-- ★ 满屏头像浮层 -->
+    <div class="fullscreen-avatar" id="fullscreenAvatar">
+        <div class="fs-avatar-wrap">
+            <div class="fs-avatar" id="fsAvatarImg"><i class="fas fa-user"></i></div>
+        </div>
+        <div class="fs-name" id="fsName"></div>
+        <div class="fs-relation" id="fsRelation"></div>
+        <div class="fs-script" id="fsScript"></div>
+        <div class="fs-wave" id="fsWave"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
+        <div class="fs-exit-hint" id="fsExitHint">播完后自动退出</div>
+    </div>
+
+<script>
+/* ===== 全局状态 ===== */
+let period='morning',broadcasts={},members=[],audio=new Audio(),playing=false,ws=null,ts=[],guardMode=false,wakeLock=null;
+let schedTimes={morning:'07:30',noon:'14:00',evening:'20:30'},lastFired=null,timer=null;
+
+/* ★ 播放流程状态 */
+let currentMemberIdx=-1;       // 当前正在播放的成员在播放队列中的索引
+let playQueue=[];               // 播放队列 [{member_id, name, relation, photo_path, script, start_sec, end_sec}]
+let memberScriptsMap={};        // member_id -> 该成员的独立文案
+let fsExitTimer=null;           // 满屏头像自动退出计时器
+let isSwitching=false;          // 正在切换成员（防止重复触发）
+
+const PI={morning:{e:'🌅',l:'早安播报'},noon:{e:'🌤',l:'午间认人'},evening:{e:'🌙',l:'晚安陪伴'}};
+
+/* ===== 初始化 ===== */
+document.addEventListener('DOMContentLoaded',async()=>{
+    await Promise.all([loadMembers(),loadBroadcasts(),loadSched(),loadCost()]);
+    connectWS();startWatch();
+});
+
+/* ===== API ===== */
+async function loadMembers(){try{const r=await fetch('/api/members');members=(await r.json()).members||[];renderAvatars()}catch(e){}}
+async function loadBroadcasts(){try{const r=await fetch('/api/broadcast/today');broadcasts=await r.json();updatePlayUI()}catch(e){}}
+async function loadSched(){try{const r=await fetch('/api/admin/config');const d=await r.json();if(d.schedules)schedTimes=d.schedules}catch(e){}}
+async function loadCost(){try{const r=await fetch('/api/broadcast/tts-usage');updateCost(await r.json())}catch(e){}}
+
+/* ===== 渲染头像 ===== */
+function renderAvatars(){
+    const c=document.getElementById('avatars');
+    if(!members.length){c.innerHTML='<span style="font-size:13px;color:var(--text3)">暂无家庭成员</span>';document.getElementById('segmentBar').innerHTML='';return}
+    c.innerHTML=members.map(m=>`<div class="av" id="av-${m.id}" onclick="onAvatarTap(${m.id})">
+        <div class="img">
+            ${m.photo_path?`<img src="${m.photo_path}" alt="${m.name}">`:'<i class="fas fa-user"></i>'}
+            <svg class="progress-ring" viewBox="0 0 62 62"><circle cx="31" cy="31" r="29" stroke="var(--primary)" stroke-dasharray="182.21" stroke-dashoffset="182.21" id="ring-${m.id}"/></svg>
+        </div>
+        <div class="nm">${m.name}</div>
+    </div>`).join('');
+    updateSegmentBar();
+}
+
+/* ===== 点击小头像 → 切换到该成员播报 ===== */
+function onAvatarTap(memberId){
+    const m=members.find(x=>x.id===memberId);if(!m)return;
+    if(playing){
+        // 正在播放，切换到该成员
+        switchToMember(memberId);
+    }else{
+        // 未在播放，直接从该成员开始播放
+        startPlayFromMember(memberId);
+    }
+}
+
+/* ===== 从指定成员开始播放 ===== */
+async function startPlayFromMember(memberId){
+    const b=broadcasts[period];
+    if(!b||!b.script){toast('暂无播报内容');return}
+
+    // 构建播放队列
+    buildPlayQueue();
+
+    const idx=playQueue.findIndex(q=>q.member_id===memberId);
+    if(idx<0){toast('该成员暂无播报内容');return}
+
+    if(b.audio_url){
+        audio.src=b.audio_url;audio.playbackRate=1;
+        try{
+            await audio.play();
+            audio.currentTime=playQueue[idx].start_sec;
+            currentMemberIdx=idx;
+            onPlayStart();
+            // 覆盖onPlayStart中默认显示第一个成员的逻辑
+            showFullscreenAvatar(memberId);
+            updateAvatarHighlight(memberId);
+            updateModeIndicator(playQueue[idx].name);
+            return;
+        }catch(e){}
+    }
+    // 尝试TTS
+    try{
+        const r=await fetch(`/api/broadcast/generate-tts/${period}`,{method:'POST'});
+        const d=await r.json();
+        if(r.status===429){showQuota(d.detail,d.usage);return}
+        if(d.success&&d.audio_url){
+            broadcasts[period].audio_url=d.audio_url;
+            audio.src=d.audio_url;
+            await audio.play();
+            audio.currentTime=playQueue[idx].start_sec;
+            currentMemberIdx=idx;
+            onPlayStart();
+            showFullscreenAvatar(memberId);
+            updateAvatarHighlight(memberId);
+            updateModeIndicator(playQueue[idx].name);
+            if(d.usage)updateCost(d.usage);else loadCost();
+            return;
+        }
+    }catch(e){}
+    // 浏览器TTS兜底
+    if('speechSynthesis' in window){
+        const script=memberScriptsMap[String(memberId)]||b.script;
+        const u=new SpeechSynthesisUtterance(script);u.lang='zh-CN';u.onend=()=>stopPlay();
+        speechSynthesis.speak(u);
+        currentMemberIdx=idx;
+        onPlayStart();
+        showFullscreenAvatar(memberId);
+        updateAvatarHighlight(memberId);
+        updateModeIndicator(playQueue[idx].name);
+        return;
+    }
+    toast('无法播放');
+}
+
+/* ===== 构建播放队列 ===== */
+function buildPlayQueue(){
+    const b=broadcasts[period];
+    ts=b?b.timestamps||[]:[];
+    memberScriptsMap=b?b.member_scripts||{}:{};
+
+    // 按timestamps顺序构建播放队列
+    if(ts.length>0){
+        // timestamps已按时间排序，去重（每个成员可能多次出现，取首末区间）
+        const memberMap={};
+        ts.forEach(t=>{
+            if(!memberMap[t.member_id]){
+                memberMap[t.member_id]={member_id:t.member_id,name:t.name,start_sec:t.start_sec,end_sec:t.end_sec};
+            }else{
+                memberMap[t.member_id].end_sec=Math.max(memberMap[t.member_id].end_sec,t.end_sec);
+            }
+        });
+        playQueue=Object.values(memberMap).sort((a,b)=>a.start_sec-b.start_sec);
+    }else if(members.length>0){
+        // 没有timestamps，按成员顺序排，每人估算时长
+        let cumSec=0;
+        playQueue=members.map(m=>{
+            const script=memberScriptsMap[String(m.id)]||'';
+            const dur=script.length>0?script.length*0.3:5;
+            const item={member_id:m.id,name:m.name,start_sec:cumSec,end_sec:cumSec+dur};
+            cumSec+=dur+0.8;
+            return item;
+        });
+    }else{
+        playQueue=[];
+    }
+
+    // 附加成员详细信息
+    playQueue=playQueue.map(item=>{
+        const m=members.find(x=>x.id===item.member_id);
+        return{
+            ...item,
+            relation:m?m.relation:'',
+            photo_path:m?m.photo_path:'',
+            script:memberScriptsMap[String(item.member_id)]||''
+        };
+    });
+}
+
+/* ===== 切换到指定成员 ===== */
+function switchToMember(memberId){
+    const m=members.find(x=>x.id===memberId);if(!m)return;
+    const idx=playQueue.findIndex(q=>q.member_id===memberId);
+    if(idx<0){toast(`${m.name}在当前播报中未被提及`);return}
+
+    isSwitching=true;
+    currentMemberIdx=idx;
+
+    // 跳转音频
+    if(audio.src&&audio.duration){
+        audio.currentTime=playQueue[idx].start_sec;
+    }
+
+    // ★ 显示满屏头像
+    showFullscreenAvatar(memberId);
+
+    // 高亮对应小头像
+    updateAvatarHighlight(memberId);
+
+    // 更新模式指示器
+    updateModeIndicator(m.name);
+
+    // 重置退出计时器
+    clearFSExitTimer();
+
+    isSwitching=false;
+}
+
+/* ===== 满屏头像显示/隐藏 ===== */
+function showFullscreenAvatar(memberId){
+    const m=members.find(x=>x.id===memberId);if(!m)return;
+    const el=document.getElementById('fullscreenAvatar');
+    const imgEl=document.getElementById('fsAvatarImg');
+    const nameEl=document.getElementById('fsName');
+    const relEl=document.getElementById('fsRelation');
+    const scriptEl=document.getElementById('fsScript');
+
+    // 设置内容
+    if(m.photo_path){imgEl.innerHTML=`<img src="${m.photo_path}" alt="${m.name}">`}
+    else{imgEl.innerHTML='<i class="fas fa-user"></i>'}
+    nameEl.textContent=m.name;
+    relEl.textContent=m.relation||'';
+    // 显示该成员的独立文案
+    const script=memberScriptsMap[String(memberId)]||'';
+    scriptEl.textContent=script;
+
+    // 显示
+    el.classList.remove('exiting');
+    el.classList.add('show');
+
+    // 声波动画
+    if(playing){
+        document.getElementById('fsWave').classList.add('on');
+    }
+}
+
+function hideFullscreenAvatar(callback){
+    const el=document.getElementById('fullscreenAvatar');
+    if(!el.classList.contains('show')){if(callback)callback();return}
+    el.classList.add('exiting');
+    setTimeout(()=>{
+        el.classList.remove('show','exiting');
+        document.getElementById('fsWave').classList.remove('on');
+        if(callback)callback();
+    },400);
+}
+
+function clearFSExitTimer(){
+    if(fsExitTimer){clearTimeout(fsExitTimer);fsExitTimer=null}
+}
+
+function scheduleFSExit(delaySec){
+    clearFSExitTimer();
+    fsExitTimer=setTimeout(()=>{
+        hideFullscreenAvatar();
+    },delaySec*1000);
+}
+
+/* ===== 播放控制 ===== */
+function togglePlay(){playing?stopPlay():startPlay()}
+
+async function startPlay(){
+    const b=broadcasts[period];
+    if(!b||!b.script){toast('暂无播报内容');return}
+
+    // 构建播放队列
+    buildPlayQueue();
+
+    if(b.audio_url){
+        audio.src=b.audio_url;audio.playbackRate=1;
+        try{await audio.play();onPlayStart();return}catch(e){}
+    }
+    // 尝试TTS
+    try{
+        const r=await fetch(`/api/broadcast/generate-tts/${period}`,{method:'POST'});
+        const d=await r.json();
+        if(r.status===429){showQuota(d.detail,d.usage);return}
+        if(d.success&&d.audio_url){broadcasts[period].audio_url=d.audio_url;audio.src=d.audio_url;
+            await audio.play();onPlayStart();if(d.usage)updateCost(d.usage);else loadCost();return}
+    }catch(e){}
+    // 浏览器TTS兜底
+    if('speechSynthesis' in window){
+        const u=new SpeechSynthesisUtterance(b.script);u.lang='zh-CN';u.onend=()=>stopPlay();
+        speechSynthesis.speak(u);onPlayStart();return;
+    }
+    toast('无法播放');
+}
+
+function onPlayStart(){
+    playing=true;
+    document.getElementById('playIco').className='fas fa-pause';
+    document.getElementById('waveEl').classList.add('on');
+    document.getElementById('fsWave')&&document.getElementById('fsWave').classList.add('on');
+
+    // ★ 播放开始：立即显示第一个成员的满屏头像
+    if(playQueue.length>0){
+        currentMemberIdx=0;
+        showFullscreenAvatar(playQueue[0].member_id);
+        updateAvatarHighlight(playQueue[0].member_id);
+        updateModeIndicator(playQueue[0].name);
+    }
+
+    startTimer();
+}
+
+function stopPlay(){
+    audio.pause();speechSynthesis.cancel();playing=false;
+    document.getElementById('playIco').className='fas fa-play';
+    document.getElementById('waveEl').classList.remove('on');
+    if(document.getElementById('fsWave'))document.getElementById('fsWave').classList.remove('on');
+    clearFSExitTimer();
+    hideFullscreenAvatar();
+    clearHL();
+    if(timer){clearInterval(timer);timer=null}
+    currentMemberIdx=-1;
+    // 重置模式
+    updateModeIndicator(null);
+    updateAvatarHighlight(null);
+}
+
+function replay(){
+    if(playing)stopPlay();
+    audio.currentTime=0;
+    currentMemberIdx=0;
+    setTimeout(()=>startPlay(),100);
+}
+
+/* ===== 播放计时器 ===== */
+function startTimer(){
+    if(timer)clearInterval(timer);let sim=0;
+    timer=setInterval(()=>{
+        if(!playing)return;
+        const ct=audio.src?audio.currentTime:sim;sim+=0.25;
+        if(audio.duration>0){
+            const pct=ct/audio.duration*100;
+            document.getElementById('progFill').style.width=pct+'%';
+            document.getElementById('totTm').textContent=fmtTm(audio.duration);
+        }
+        document.getElementById('curTm').textContent=fmtTm(ct);
+        checkMemberTransition(ct);
+        updateProgressRings(ct);
+        updateSegmentProgress(ct);
+    },250);
+}
+
+/* ★ 核心逻辑：检测当前播放到哪个成员，自动切换满屏头像 */
+function checkMemberTransition(ct){
+    if(!playQueue.length)return;
+
+    let newIdx=-1;
+    for(let i=0;i<playQueue.length;i++){
+        if(ct>=playQueue[i].start_sec&&ct<=playQueue[i].end_sec+0.5){
+            newIdx=i;break;
+        }
+    }
+
+    // 如果没在任何成员区间（段间空白），保持当前
+    if(newIdx<0)return;
+
+    // ★ 成员切换
+    if(newIdx!==currentMemberIdx&&!isSwitching){
+        const prevIdx=currentMemberIdx;
+        currentMemberIdx=newIdx;
+        const curMember=playQueue[newIdx];
+
+        // ★ 显示新成员的满屏头像
+        showFullscreenAvatar(curMember.member_id);
+        updateAvatarHighlight(curMember.member_id);
+        updateModeIndicator(curMember.name);
+
+        // ★ 上一个成员播完 → 3秒后退出满屏（如果还没切到新成员的话）
+        // 这里不需要了，因为新成员的头像会立刻替换
+    }
+
+    // ★ 检查最后一个成员播完 → 3秒后退出满屏
+    const lastMember=playQueue[playQueue.length-1];
+    if(ct>lastMember.end_sec+1&&currentMemberIdx===playQueue.length-1){
+        if(!fsExitTimer){
+            scheduleFSExit(3);
+        }
+    }
+}
+
+/* ===== 更新头像高亮 ===== */
+function updateAvatarHighlight(activeMemberId){
+    document.querySelectorAll('.av').forEach(el=>{el.classList.remove('on','focused')});
+    if(activeMemberId){
+        const el=document.getElementById('av-'+activeMemberId);
+        if(el)el.classList.add('on');
+    }
+}
+
+/* ===== 更新模式指示器 ===== */
+function updateModeIndicator(memberName){
+    const el=document.getElementById('modeIndicator');
+    const txt=document.getElementById('modeText');
+    if(memberName){
+        el.classList.add('focused');
+        el.querySelector('i').className='fas fa-user-check';
+        txt.innerHTML=`正在播报 · <span class="mode-member">${memberName}</span>`;
+    }else{
+        el.classList.remove('focused');
+        el.querySelector('i').className='fas fa-play-circle';
+        txt.textContent='顺序播放全部';
+    }
+}
+
+/* ===== 片段进度条 ===== */
+function updateSegmentBar(){
+    const bar=document.getElementById('segmentBar');
+    buildPlayQueue();
+    if(!playQueue.length){bar.innerHTML='';return}
+    const b=broadcasts[period];
+    const totalSec=Math.max((b&&b.script?b.script.length:0)*0.3,10);
+    bar.innerHTML=playQueue.map((s,i)=>{
+        const left=(s.start_sec/totalSec*100).toFixed(1);
+        const width=(Math.max((s.end_sec-s.start_sec)/totalSec*100,3)).toFixed(1);
+        return `<div class="seg" style="margin-left:${left}%;width:${width}%" data-mid="${s.member_id}" data-idx="${i}" onclick="onSegmentTap(${i})"><div class="seg-fill"></div></div>`;
+    }).join('');
+}
+
+/* ★ 点击片段条切换成员 */
+function onSegmentTap(idx){
+    if(idx<0||idx>=playQueue.length)return;
+    const q=playQueue[idx];
+    if(playing){
+        switchToMember(q.member_id);
+    }else{
+        showFullscreenAvatar(q.member_id);
+    }
+}
+
+/* ===== 更新头像进度环 ===== */
+function updateProgressRings(ct){
+    const circumference=2*Math.PI*29;
+    members.forEach(m=>{
+        const ring=document.getElementById('ring-'+m.id);if(!ring)return;
+        const mTs=getMemberTimestamps(m.id);
+        if(!mTs.length){ring.style.strokeDashoffset=circumference;return}
+        let playedSec=0,totalSec=0;
+        mTs.forEach(t=>{
+            totalSec+=t.end_sec-t.start_sec;
+            if(ct>=t.end_sec)playedSec+=t.end_sec-t.start_sec;
+            else if(ct>=t.start_sec)playedSec+=ct-t.start_sec;
+        });
+        const pct=totalSec>0?playedSec/totalSec:0;
+        ring.style.strokeDashoffset=circumference*(1-pct);
+    });
+}
+
+function getMemberTimestamps(memberId){
+    const b=broadcasts[period];if(!b||!b.timestamps)return[];
+    return b.timestamps.filter(t=>t.member_id==memberId);
+}
+
+/* ===== 更新片段进度条 ===== */
+function updateSegmentProgress(ct){
+    document.querySelectorAll('.segment-bar .seg').forEach(seg=>{
+        const mid=seg.dataset.mid;
+        const mTs=getMemberTimestamps(mid);if(!mTs.length)return;
+        let playedSec=0,totalSec=0;
+        mTs.forEach(t=>{
+            totalSec+=t.end_sec-t.start_sec;
+            if(ct>=t.end_sec)playedSec+=t.end_sec-t.start_sec;
+            else if(ct>=t.start_sec)playedSec+=ct-t.start_sec;
+        });
+        const fill=seg.querySelector('.seg-fill');
+        if(fill)fill.style.width=(totalSec>0?playedSec/totalSec*100:0)+'%';
+    });
+}
+
+function clearHL(){
+    document.querySelectorAll('.av').forEach(e=>{e.classList.remove('on')});
+    document.querySelectorAll('.progress-ring circle').forEach(r=>{r.style.strokeDashoffset=2*Math.PI*29});
+    document.querySelectorAll('.seg-fill').forEach(f=>f.style.width='0%');
+}
+
+function seek(ev){
+    if(!audio.duration)return;
+    const r=ev.currentTarget.getBoundingClientRect();
+    audio.currentTime=(ev.clientX-r.left)/r.width*audio.duration;
+}
+
+audio.addEventListener('ended',()=>{
+    // ★ 播放结束：3秒后退出满屏头像
+    clearFSExitTimer();
+    scheduleFSExit(3);
+    stopPlay();
+});
+audio.addEventListener('timeupdate',()=>{
+    if(audio.duration){
+        const p=audio.currentTime/audio.duration*100;
+        document.getElementById('progFill').style.width=p+'%';
+        document.getElementById('curTm').textContent=fmtTm(audio.currentTime);
+        document.getElementById('totTm').textContent=fmtTm(audio.duration);
+    }
+});
+
+/* ===== 更新播放UI ===== */
+function updatePlayUI(){
+    const b=broadcasts[period],se=document.getElementById('scriptEl'),bd=document.getElementById('statusBadge');
+    if(b&&b.script){
+        se.innerHTML=highlightScript(b.script);
+        se.classList.remove('empty');
+        // 更新member_scripts
+        if(b.member_scripts)memberScriptsMap=b.member_scripts;
+    }else{
+        se.textContent='今日播报尚未生成，请先生成';se.classList.add('empty');
+    }
+    const st=b?b.status:'pending';
+    const stMap={draft:'已生成',approved:'已确认',rejected:'已拒绝',generated:'已就绪',pending:'未生成',failed:'生成失败',not_created:'未创建'};
+    bd.textContent=stMap[st]||st;
+    bd.className='badge '+(['draft','approved','rejected','generated','pending','failed'].includes(st)?st:'pending');
+    document.getElementById('cardTitle').innerHTML=`${PI[period].e} ${PI[period].l}`;
+    buildPlayQueue();
+    updateSegmentBar();
+    ts=b?b.timestamps||[]:[];
+}
+
+/* ===== 文稿高亮家人名字 ===== */
+function highlightScript(script){
+    if(!script)return'';
+    let html=script;
+    members.forEach(m=>{
+        if(!m.name)return;
+        html=html.replace(new RegExp(m.name,'g'),`<span class="hl" data-mid="${m.id}" onclick="onAvatarTap(${m.id})" style="cursor:pointer">${m.name}</span>`);
+    });
+    return html;
+}
+
+/* ===== 切换时段 ===== */
+function switchPeriod(p){
+    period=p;
+    document.querySelectorAll('.p-chip').forEach(c=>c.classList.toggle('active',c.dataset.p===p));
+    if(playing)stopPlay();
+    currentMemberIdx=-1;
+    updateModeIndicator(null);
+    updateAvatarHighlight(null);
+    updatePlayUI();
+}
+
+/* ===== 切换Tab ===== */
+function switchTab(t){
+    document.querySelectorAll('.tab-i').forEach(i=>i.classList.toggle('on',i.dataset.tab===t));
+    document.getElementById('tabPlay').classList.toggle('on',t==='play');
+}
+
+/* ===== 守护模式 ===== */
+async function toggleGuard(){
+    guardMode=document.getElementById('guardSw').checked;
+    if(guardMode){await reqWL();toast('🛡️ 守护模式已开启')}
+    else{relWL();toast('守护模式已关闭')}
+}
+async function reqWL(){try{if('wakeLock' in navigator){wakeLock=await navigator.wakeLock.request('screen')}}catch(e){}}
+function relWL(){try{if(wakeLock){wakeLock.release();wakeLock=null}}catch(e){}}
+document.addEventListener('visibilitychange',async()=>{if(guardMode&&document.visibilityState==='visible')await reqWL()});
+
+function startWatch(){setInterval(checkSched,15000);checkSched()}
+function checkSched(){
+    if(!guardMode)return;
+    const n=new Date(),hh=String(n.getHours()).padStart(2,'0'),mm=String(n.getMinutes()).padStart(2,'0'),cur=`${hh}:${mm}`,dk=n.toISOString().slice(0,10);
+    for(const[p,t]of Object.entries(schedTimes)){
+        if(t===cur){const fk=`${dk} ${p} ${t}`;if(lastFired!==fk){lastFired=fk;triggerSched(p)}}
+    }
+}
+async function triggerSched(p){
+    toast(`⏰ ${PI[p].l}，正在播报`);playChime();
+    try{const r=await fetch(`/api/admin/test-push/${p}`);const d=await r.json();if(d.success){setTimeout(()=>handlePush(d.pushed),1500);return}}catch(e){}
+    await loadBroadcasts();switchPeriod(p);setTimeout(()=>startPlay(),1500);
+}
+function playChime(){try{const ctx=new(window.AudioContext||window.webkitAudioContext)();[523.25,659.25,783.99].forEach((f,i)=>{const o=ctx.createOscillator(),g=ctx.createGain();o.type='sine';o.frequency.value=f;const s=ctx.currentTime+i*.18;g.gain.setValueAtTime(0,s);g.gain.linearRampToValueAtTime(.2,s+.05);g.gain.exponentialRampToValueAtTime(.001,s+.6);o.connect(g);g.connect(ctx.destination);o.start(s);o.stop(s+.65)})}catch(e){}}
+
+/* ===== WebSocket ===== */
+function connectWS(){
+    const proto=location.protocol==='https:'?'wss:':'ws:';
+    ws=new WebSocket(`${proto}//${location.host}/ws`);
+    ws.onopen=()=>{document.getElementById('cDot').classList.add('on');document.getElementById('cTxt').textContent='已连接';setInterval(()=>{if(ws.readyState===WebSocket.OPEN)ws.send(JSON.stringify({type:'ping'}))},30000)};
+    ws.onmessage=ev=>{const d=JSON.parse(ev.data);if(d.type==='pong')return;if(d.event==='play_broadcast')handlePush(d)};
+    ws.onclose=()=>{document.getElementById('cDot').classList.remove('on');document.getElementById('cTxt').textContent='已断开';setTimeout(connectWS,5000)};
+    ws.onerror=()=>{document.getElementById('cDot').classList.remove('on');document.getElementById('cTxt').textContent='错误'};
+}
+
+function handlePush(d){
+    broadcasts[d.period]={
+        script:d.script,
+        audio_url:d.audio_url,
+        timestamps:d.timestamps||[],
+        member_scripts:d.member_scripts||{},
+        status:d.status||'generated'
+    };
+    switchPeriod(d.period);updatePlayUI();
+    setTimeout(()=>startPlay(),500);
+}
+
+/* ===== 推送/生成 ===== */
+async function testPush(p){
+    try{const r=await fetch(`/api/admin/test-push/${p}`);const d=await r.json();if(d.success){handlePush(d.pushed)}else{await loadBroadcasts();switchPeriod(p)}}catch(e){await loadBroadcasts();switchPeriod(p)}
+}
+
+async function genTTS(){
+    const b=broadcasts[period];if(!b||!b.script){toast('暂无文稿');return}
+    try{
+        const r=await fetch(`/api/broadcast/generate-tts/${period}`,{method:'POST'});const d=await r.json();
+        if(r.status===429){showQuota(d.detail,d.usage);return}
+        if(d.success){broadcasts[period].audio_url=d.audio_url;toast('语音已生成');if(d.usage)updateCost(d.usage);else loadCost()}
+        else toast(d.detail||d.error||'生成失败');
+    }catch(e){toast('请求失败')}
+}
+
+/* ===== 费用 ===== */
+function updateCost(u){
+    if(!u)return;
+    const pct=Math.min(u.usage_percent,100);
+    document.getElementById('costFill').style.width=pct+'%';
+    document.getElementById('costFill').style.background=pct>85?'var(--danger)':pct>60?'var(--warm)':'var(--primary)';
+    document.getElementById('costTx').textContent=`¥${u.estimated_cost_yuan}/¥${u.budget_yuan}`;
+}
+
+function showQuota(msg,u){
+    document.getElementById('quotaMsg').textContent=msg||'TTS语音合成费用已达上限';
+    document.getElementById('quotaMask').classList.add('show');
+}
+
+async function checkStatus(){
+    try{const r=await fetch('/api/admin/status');const d=await r.json();const m=Object.entries(d.broadcasts).map(([p,s])=>`${PI[p].e} ${PI[p].l}: ${s.status}`).join('\n');toast(`📊 ${d.date}\n${m}`)}catch(e){toast('获取失败')}
+}
+
+/* ===== 工具 ===== */
+function fmtTm(s){if(!s||isNaN(s))return'0:00';const m=Math.floor(s/60),sec=Math.floor(s%60);return`${m}:${sec.toString().padStart(2,'0')}`}
+function toast(msg){const t=document.createElement('div');t.className='toast';t.textContent=msg;document.body.appendChild(t);setTimeout(()=>{t.style.opacity='0';t.style.transition='opacity .3s';setTimeout(()=>t.remove(),300)},2500)}
+</script>
+</body>
+</html>
