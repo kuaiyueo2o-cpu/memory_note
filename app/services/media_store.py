@@ -33,14 +33,22 @@ async def fetch_blob_bytes(pathname: str) -> tuple[bytes, str]:
 
     client = AsyncBlobClient(token=token)
     result = await client.get(pathname, access="private")
-    if result is None or result.status_code != 200 or result.stream is None:
+    status_code = getattr(result, "status_code", None) or getattr(result, "statusCode", None)
+    stream = getattr(result, "stream", None)
+    blob_meta = getattr(result, "blob", None)
+    content_type = (
+        getattr(blob_meta, "content_type", None)
+        or getattr(blob_meta, "contentType", None)
+        or "application/octet-stream"
+    )
+    if result is None or status_code != 200 or stream is None:
         raise FileNotFoundError("Blob 文件不存在")
 
     chunks: list[bytes] = []
-    async for chunk in result.stream:
+    async for chunk in stream:
         chunks.append(chunk)
 
-    return b"".join(chunks), (result.blob.content_type or "application/octet-stream")
+    return b"".join(chunks), content_type
 
 
 async def save_media_bytes(
