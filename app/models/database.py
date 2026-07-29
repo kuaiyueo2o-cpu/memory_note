@@ -2,11 +2,20 @@ import os
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, declarative_base
 
-DB_PATH = os.path.join(os.path.dirname(__file__), "..", "..", "memory_companion.db")
+
+def _default_sqlite_path() -> str:
+    """Vercel 无持久磁盘；未配数据库时退回到 /tmp，至少保证函数可启动。"""
+    if os.environ.get("VERCEL") == "1" or os.environ.get("VERCEL_ENV"):
+        return "/tmp/memory_companion.db"
+    return os.path.abspath(
+        os.path.join(os.path.dirname(__file__), "..", "..", "memory_companion.db")
+    )
+
+
 # 开发环境可继续使用 SQLite；部署时通过 DATABASE_URL 切换到托管 PostgreSQL。
 # 例如：postgresql+psycopg://xiaonuan:password@db:5432/xiaonuan
 SQLALCHEMY_DATABASE_URL = os.environ.get(
-    "DATABASE_URL", f"sqlite:///{os.path.abspath(DB_PATH)}"
+    "DATABASE_URL", f"sqlite:///{_default_sqlite_path()}"
 )
 if SQLALCHEMY_DATABASE_URL.startswith("postgres://"):
     SQLALCHEMY_DATABASE_URL = SQLALCHEMY_DATABASE_URL.replace(
