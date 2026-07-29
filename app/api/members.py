@@ -13,9 +13,15 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/members", tags=["家庭成员管理"])
 
 # ★ 关键修复：上传目录必须与 main.py 中 StaticFiles 挂载的目录一致
+# Vercel 运行时磁盘只读，未接对象存储前暂时把运行期文件写到 /tmp。
 APP_DIR = os.path.dirname(os.path.dirname(__file__))  # .../app
 STATIC_DIR = os.path.join(APP_DIR, "static")
-UPLOAD_DIR = os.path.join(STATIC_DIR, "uploads")
+RUNTIME_UPLOAD_ROOT = (
+    "/tmp/xiaonuan_uploads"
+    if os.environ.get("VERCEL") == "1" or os.environ.get("VERCEL_ENV")
+    else os.path.join(STATIC_DIR, "uploads")
+)
+UPLOAD_DIR = RUNTIME_UPLOAD_ROOT
 PHOTO_DIR = os.path.join(UPLOAD_DIR, "photos")
 VOICE_DIR = os.path.join(UPLOAD_DIR, "voices")
 

@@ -7,7 +7,11 @@ from app.models.models import DailyBroadcast, FamilyMember, Elder
 
 logger = logging.getLogger(__name__)
 
-AUDIO_DIR = os.path.join(os.path.dirname(__file__), "..", "static", "audio")
+AUDIO_DIR = (
+    "/tmp/xiaonuan_audio"
+    if os.environ.get("VERCEL") == "1" or os.environ.get("VERCEL_ENV")
+    else os.path.join(os.path.dirname(__file__), "..", "static", "audio")
+)
 os.makedirs(AUDIO_DIR, exist_ok=True)
 
 # ========== TTS 服务商开关 ==========
