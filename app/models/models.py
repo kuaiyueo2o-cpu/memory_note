@@ -95,3 +95,32 @@ class AppConfig(Base):
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
     config_key = Column(String(50), nullable=False, unique=True, index=True, comment="配置键")
     config_value = Column(Text, nullable=True, comment="配置值")
+
+
+class ChatMessage(Base):
+    __tablename__ = "chat_messages"
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    member_id = Column(Integer, nullable=False, index=True)
+    role = Column(String(20), nullable=False)
+    content = Column(Text, nullable=False)
+    audio_path = Column(Text, nullable=True)
+    created_at = Column(DateTime, server_default=func.now())
+
+
+class PairingCode(Base):
+    __tablename__ = "pairing_codes"
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    code = Column(String(6), nullable=False, unique=True, index=True)
+    expires_at = Column(DateTime, nullable=False)
+    used_at = Column(DateTime, nullable=True)
+
+
+class CompanionDevice(Base):
+    __tablename__ = "companion_devices"
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    device_token = Column(String(64), nullable=False, unique=True, index=True)
+    device_name = Column(String(80), nullable=False)
+    elder_id = Column(Integer, nullable=True)
+    is_active = Column(Integer, default=1)
+    bound_at = Column(DateTime, server_default=func.now())
+    last_seen_at = Column(DateTime, server_default=func.now())

@@ -3,9 +3,20 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, declarative_base
 
 DB_PATH = os.path.join(os.path.dirname(__file__), "..", "..", "memory_companion.db")
-SQLALCHEMY_DATABASE_URL = f"sqlite:///{os.path.abspath(DB_PATH)}"
+# 开发环境可继续使用 SQLite；部署时通过 DATABASE_URL 切换到托管 PostgreSQL。
+# 例如：postgresql+psycopg://xiaonuan:password@db:5432/xiaonuan
+SQLALCHEMY_DATABASE_URL = os.environ.get(
+    "DATABASE_URL", f"sqlite:///{os.path.abspath(DB_PATH)}"
+)
+if SQLALCHEMY_DATABASE_URL.startswith("postgres://"):
+    SQLALCHEMY_DATABASE_URL = SQLALCHEMY_DATABASE_URL.replace(
+        "postgres://", "postgresql+psycopg://", 1
+    )
 
-engine = create_engine(SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False})
+engine_options = {"pool_pre_ping": True}
+if SQLALCHEMY_DATABASE_URL.startswith("sqlite"):
+    engine_options["connect_args"] = {"check_same_thread": False}
+engine = create_engine(SQLALCHEMY_DATABASE_URL, **engine_options)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 

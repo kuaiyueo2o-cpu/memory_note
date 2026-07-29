@@ -1,0 +1,42 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+dist/
+build/
+venv/
+.venv/
+
+# Environment & secrets
+.env
+*.env
+
+# Database
+*.db
+*.sqlite3
+
+# Uploads (user generated content)
+app/static/uploads/photos/*
+app/static/uploads/voices/*
+static/uploads/photos/*
+static/uploads/voices/*
+!app/static/uploads/photos/.gitkeep
+!app/static/uploads/voices/.gitkeep
+!static/uploads/photos/.gitkeep
+!static/uploads/voices/.gitkeep
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Agent/Tool metadata
+.agent/
+prd_unpacked/
+
+# Zip archives
+*.zip

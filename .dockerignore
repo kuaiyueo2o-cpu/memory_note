@@ -1,0 +1,58 @@
+# Version control
+.git
+.gitignore
+
+# Python
+__pycache__
+*.pyc
+*.pyo
+.venv
+venv
+
+# IDE
+.vscode
+.idea
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+logs
+*.log
+
+# Environment (use Docker ENV instead)
+.env
+.env.local
+
+# Database (runtime generated)
+*.db
+
+# TTS usage tracking
+tts_usage.json
+
+# Test
+test
+tests
+
+# Documentation
+README.md
+docs
+
+# CI/CD
+.github
+
+# Agent / deploy meta (not needed at runtime)
+.agent
+.with
+
+# PRD source (large, unrelated to runtime)
+prd_unpacked
+
+# Redundant top-level static dir (app uses app/static instead)
+/static
+
+# Runtime-generated user uploads & audio (should NOT be baked into image)
+app/static/uploads
+app/static/audio/*.mp3

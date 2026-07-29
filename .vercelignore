@@ -1,0 +1,11 @@
+.env
+.venv
+memory_companion.db
+*.db
+prd_unpacked
+.agent
+app/templates/*.bak
+app/static/uploads
+app/static/audio
+docs
+mobile

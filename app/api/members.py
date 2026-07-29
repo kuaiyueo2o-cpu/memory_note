@@ -67,8 +67,8 @@ async def _do_voice_clone(member_id: int, voice_file_path: str):
             member.voice_clone_id = result
             logger.info(f"✅ 成员 {member.name}(id={member_id}) 声音克隆成功: {result}")
         else:
-            # 未知错误（返回None），使用预设音色兜底
-            member.voice_clone_id = "CLONE_FAIL:音色克隆9.9一次，请联系客服充值：15972426219"
+            # 未知错误：保留真实状态，不伪造客服或收费信息。
+            member.voice_clone_id = "CLONE_FAIL:音色复刻未完成，请检查 API Key、实名认证和录音格式"
             logger.warning(f"⚠️ 成员 {member.name}(id={member_id}) 声音克隆失败（未知原因）")
         db.commit()
     finally:

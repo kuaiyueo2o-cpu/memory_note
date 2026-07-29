@@ -1,0 +1,35 @@
+services:
+  app:
+    build: .
+    env_file: .env
+    environment:
+      DATABASE_URL: postgresql+psycopg://xiaonuan:${POSTGRES_PASSWORD}@db:5432/xiaonuan
+    ports:
+      - "8000:8000"
+    volumes:
+      - xiaonuan-media:/app/app/static/uploads
+      - xiaonuan-audio:/app/app/static/audio
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: xiaonuan
+      POSTGRES_USER: xiaonuan
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - xiaonuan-db:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U xiaonuan -d xiaonuan"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+volumes:
+  xiaonuan-db:
+  xiaonuan-media:
+  xiaonuan-audio:

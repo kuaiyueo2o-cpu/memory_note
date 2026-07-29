@@ -130,12 +130,12 @@ def get_tts_usage_info() -> dict:
 # ========== 默认兜底文案 ==========
 FALLBACK_SCRIPTS = {
     "morning": "{elder_name}，早上好。今天天气不错，记得穿暖和点。今天好好照顾自己，我们都想你。",
-    "noon": "{elder_name}，你还记得我吗？我是你的家人，我一直都在想你。你休息一下，下午好好放松。",
+    "noon": "{elder_name}，中午好。想和您慢慢说几句家里的事。您先安心休息，我们一直惦记您。",
     "evening": "{elder_name}，今天过得好吗？好好休息，明天又是新的一天。晚安，我们都爱你。",
 }
 
 # ========== 大模型 Prompt 模板（基于详细家人画像，生成温情内容）==========
-SYSTEM_PERSONA = """你是一位最懂得陪伴认知障碍症老人的家庭沟通专家，也是这位老人最亲的家人。
+SYSTEM_PERSONA = """你是经家属授权的家庭陪伴播报系统，依据真实建档资料，为认知障碍长者生成温和、可理解的口语播报。你不是现实中的家人，不替任何家人承诺现实行动。
 
 【收听者画像——你必须根据这个人的真实情况来调整说话方式】
 {elder_profile}
@@ -144,11 +144,12 @@ SYSTEM_PERSONA = """你是一位最懂得陪伴认知障碍症老人的家庭沟
 根据收听者画像，你需要做到：
 - 用最简单的口语，像面对面拉家常一样，绝不用书面语和华丽辞藻
 - 句子短，每句不超过15个字，多用短句和停顿
-- 语气温柔、缓慢、笃定，充满安全感，反复传递"有人爱你、有人记得你"
-- 根据老人的症状和程度调整措辞：轻度可以多说一些信息，重度要更简单、更反复确认
+- 语气温柔、缓慢、笃定，传递安全感；尊重对方，不使用幼态化、命令式或考核式表达
+- 根据老人的症状和程度调整措辞：轻度可以多说一些信息；中重度一次只传达一个主题，不堆叠家人、安排或问题
 - 如果老人容易焦虑，多用"没事的""我在呢"；如果老人容易迷路，多提醒"你在家里，很安全"
-- 自然地把家人的名字、关系、爱好、和老人之间最难忘的小事说进去，帮老人一点点想起这个人
-- 绝不质问、不说"你怎么又忘了"，只温柔提醒和陪伴
+- 可以自然说出真实的家人名字、关系、爱好和共同回忆，但只用于建立熟悉感；不要求、暗示或测试老人是否记得
+- 绝不质问、不说"你怎么又忘了""你还记得我吗"，不要求老人证明记忆；先回应情绪，再给简短、可核实的信息
+- 不把系统说成唯一依靠，不说"只有我陪你"；不索取隐私、钱财、验证码，也不引导与现实家人隔离
 - 称呼老人时，使用老人画像中填写的称呼（{elder_name}），不可自行替换
 
 【🔴 真实原则——最严厉的禁令，违反即为不合格输出】
@@ -162,6 +163,7 @@ SYSTEM_PERSONA = """你是一位最懂得陪伴认知障碍症老人的家庭沟
 6. 禁止编造天气建议的具体行动：不能说"出门记得带伞"除非天气数据确实有雨；不能说"穿厚点"除非气温确实低。
 7. 信息缺失时只能用安全的泛化表达："今天好好照顾自己""我们都在想你""明天又是新的一天"——绝不填充具体内容。
 8. 关于"今天的好事"和"明天的安排"，只能使用系统明确提供的内容。如果系统没有提供任何安排，就简单说"今天好好休息"或"明天又是新的一天"，绝不编造。
+9. 不做诊断、治疗建议或紧急承诺。若资料出现明显危险、急性不适、走失、受骗或伤害线索，只建议立即联系身边可信家属、照护者或当地紧急服务，不淡化风险。
 
 请直接输出可以照着念的口语播报稿，不要任何标题、前缀、括号说明或表情符号。"""
 
@@ -180,27 +182,27 @@ MORNING_PROMPT = """现在是早晨，请给{elder_name}做一段温暖的「早
 4. 如果家属有担心的事项（如容易迷路、忘记吃药），温柔地穿插提醒
 5. 提到家人时，只使用画像中真实存在的信息（姓名、关系、爱好等），绝不编造
 6. 绝对禁止编造任何动作场景：不说"给你热了牛奶""给你拿衣服""给你端茶"——除非上面画像中明确写了这件事
-7. 每次提到家人名字时，在最后加上一句引导语：「{elder_name}，点击一下这个头像，看看我长什么样子」，引导老人点击屏幕上的家人头像
+7. 不指示老人点击屏幕，也不要求回复或完成任务
 8. 全篇100到150字，口语短句，结尾给一点盼头
 
 直接输出播报稿。"""
 
-NOON_PROMPT = """现在是午间，请做一段「认人陪伴」播报，帮{elder_name}认出并记起家人。
+NOON_PROMPT = """现在是午间，请做一段「熟悉感陪伴」播报，让{elder_name}感到被惦记和安心；不要测试或要求回忆。
 
 【需要重点介绍的家人画像】（以下是基于真实建档信息的家人描述，只可使用这些信息，不可编造）
 {member_profiles}
 【今天日期】{today}
 
 写作要求：
-1. 第一句用「{elder_name}，你还记得我吗？」开头
-2. ★ 必须逐一介绍上面列出的每一位家人：每位家人都要提到名字和关系，不能遗漏
-3. 只用画像中真实存在的爱好、口头禅、最难忘的小事来帮老人慢慢想起来
+1. 第一句用「{elder_name}，中午好，想和您慢慢说几句家里的事。」或同等温和说法开头
+2. 根据老人的程度选择重点：中重度只介绍一位家人；轻度最多介绍两位。每位只说姓名、关系和一项真实信息，不堆叠信息
+3. 只用画像中真实存在的爱好、口头禅、最难忘的小事来建立熟悉感，不要求老人想起或回答
 4. 如果画像中某项标注了[未填写]，绝对不能编造替代内容，直接跳过该话题
 5. 绝对禁止编造任何动作场景：不说"给你热了牛奶""给你拿衣服"——除非画像明确写了
-6. 如果老人有记忆障碍的症状，要更耐心、更反复地确认，但绝不说"你忘了"
-7. 反复给老人安全感，说"没关系，我一直都在"
-8. 介绍每位家人后都加上引导语：「{elder_name}，点击一下这个头像，看看我长什么样子」
-9. 全篇150到250字（家人多时可以稍长），口语短句，让老人感到被深深爱着
+6. 如果老人有记忆障碍，语气更耐心，内容更简洁；绝不说"你忘了"或"你还记得我吗"
+7. 给老人安全感，但不替现实家人承诺行动；可说"家里人一直惦记您"
+8. 不指示老人点击屏幕，也不要求回复或完成任务
+9. 全篇80到130字，口语短句，让老人感到被关心
 
 直接输出播报稿。"""
 
@@ -219,7 +221,7 @@ EVENING_PROMPT = """现在是晚上，请做一段温柔的「晚安陪伴」播
 4. 绝对禁止编造任何动作场景：不说"给你热了牛奶""给你盖被子""给你拿衣服"——除非上面安排中明确写了
 5. 如果老人夜间容易不安或焦虑，多给安全感，说"你很安全""我们都在"
 6. 提到家人时，只使用画像中真实存在的信息，绝不编造
-7. 结尾加上一句引导语：「{elder_name}，点击一下这个头像，看看我长什么样子」
+7. 不指示老人点击屏幕，也不要求回复或完成任务
 8. 全篇100到150字，口语短句，以「晚安」结尾
 
 直接输出播报稿。"""
@@ -258,18 +260,18 @@ MEMBER_GREETING_PROMPT = """现在是{period_label}，请替{member_relation}「
 2. 自报身份：「我是{member_name}，你的{member_relation}」
 3. 根据时段调整内容：
    - 早晨：温暖问候+天气提醒（只能用上面提供的天气数据），给今天一点盼头
-   - 午间：帮老人回忆自己——用真实存在的爱好、口头禅、最难忘的小事唤起记忆
+   - 午间：用真实存在的爱好、口头禅、最难忘的小事建立熟悉感；不测试记忆、不要求回答
    - 晚上：温柔陪伴+安全感+晚安
 4. 绝对禁止编造：
    - 不说"给你热了牛奶""给你拿衣服""陪你散步"——除非画像或安排中明确写了
    - 不说"今天我来看你了"——除非安排中确实有
    - 不说任何画像中[未填写]的内容
 5. 全篇50到80字，口语短句，像面对面拉家常
-6. 结尾说：「{elder_name}，点一下这个头像，看看我长什么样子」
+6. 不指示老人点击屏幕，也不要求回复或完成任务
 
 直接输出播报稿。"""
 
-MEMBER_INTRO_PROMPT = """请替{member_relation}「{member_name}」做一段简短的自我介绍，帮助{elder_name}认出并记住自己。
+MEMBER_INTRO_PROMPT = """请替{member_relation}「{member_name}」做一段简短的自我介绍，帮助{elder_name}建立熟悉感和安全感；不要测试记忆。
 
 【收听者画像】
 {elder_profile}
@@ -280,15 +282,15 @@ MEMBER_INTRO_PROMPT = """请替{member_relation}「{member_name}」做一段简�
 【今天日期】{today}
 
 写作要求：
-1. 开头：「{elder_name}，你还记得我吗？」
+1. 开头：「{elder_name}，您好，我是{member_name}。」或同等温和说法
 2. 自报姓名和关系：「我是{member_name}，你的{member_relation}」
-3. 用画像中真实存在的爱好、口头禅、最难忘的小事来帮老人想起来
+3. 用画像中真实存在的爱好、口头禅、最难忘的小事建立熟悉感，不要求老人想起来或回答
 4. 如果画像中某项标注[未填写]，绝对不能编造，直接跳过
 5. 绝对禁止编造动作场景（不说"给你热牛奶""给你拿衣服"等）
-6. 如果老人有记忆障碍，要更耐心反复确认，但绝不说"你忘了"
-7. 反复给老人安全感："没关系，我一直都在"
+6. 如果老人有记忆障碍，要更耐心、更简洁；绝不说"你忘了"或"你还记得我吗"
+7. 给老人安全感，但不替现实家人承诺行动；可说"家里人一直惦记您"
 8. 全篇60到100字，口语短句
-9. 结尾说：「{elder_name}，点一下这个头像，看看我长什么样子」
+9. 不指示老人点击屏幕，也不要求回复或完成任务
 
 直接输出播报稿。"""
 
@@ -602,9 +604,9 @@ async def call_minimax_tts(text: str, voice_id: str = MINIMAX_DEFAULT_VOICE) -> 
         return None
 
 
-# ========== MiniMax 声音克隆（国际版两步流程）==========
+# ========== MiniMax 国内版音色快速复刻（两步流程）==========
 async def clone_voice_minimax(audio_file_path: str) -> str:
-    """调用 MiniMax 国际版声音克隆 API，上传音频文件并克隆获取 voice_id。
+    """调用 MiniMax 国内版音色快速复刻 API，上传音频文件并获得 voice_id。
 
     流程（两步）：
     1. POST /v1/files/upload (multipart/form-data, purpose=voice_clone) → 获取 file_id
@@ -614,20 +616,27 @@ async def clone_voice_minimax(audio_file_path: str) -> str:
         audio_file_path: 服务器本地的音频文件绝对路径（支持 mp3/m4a/wav）
 
     Returns:
-        克隆成功返回 voice_id 字符串；失败返回 None
+        克隆成功返回 voice_id 字符串；失败返回以 CLONE_FAIL: 开头的中文原因。
     """
     import hashlib
 
     api_key = os.environ.get("MINIMAX_API_KEY", "")
     if not api_key:
         logger.warning("声音克隆：未配置 MINIMAX_API_KEY")
-        return None
+        return "CLONE_FAIL:未配置 MiniMax 国内版 API Key"
 
     if not os.path.exists(audio_file_path):
         logger.error(f"声音克隆：音频文件不存在 {audio_file_path}")
-        return None
+        return "CLONE_FAIL:录音文件不存在，请重新上传"
 
-    base_url = os.environ.get("MINIMAX_BASE_URL", "https://api.minimax.io")
+    file_size = os.path.getsize(audio_file_path)
+    if file_size > 20 * 1024 * 1024:
+        return "CLONE_FAIL:录音超过 20MB，请压缩后重新上传"
+
+    # 克隆与 TTS 必须使用同一个国内 MiniMax 账号/区域，否则克隆音色无法用于合成。
+    base_url = os.environ.get("MINIMAX_BASE_URL", "https://api.minimaxi.com").rstrip("/")
+    if "minimax.io" in base_url:
+        return "CLONE_FAIL:请改用 MiniMax 国内版接口 api.minimaxi.com"
 
     # 读取音频文件
     with open(audio_file_path, "rb") as f:
@@ -669,24 +678,24 @@ async def clone_voice_minimax(audio_file_path: str) -> str:
 
             if upload_resp.status_code != 200:
                 logger.error(f"声音克隆上传HTTP错误: {upload_resp.status_code} {upload_resp.text[:300]}")
-                return None
+                return f"CLONE_FAIL:录音上传失败（{upload_resp.status_code}）"
 
             upload_data = upload_resp.json()
             upload_base_resp = upload_data.get("base_resp", {})
             if upload_base_resp.get("status_code", 0) != 0:
                 logger.error(f"声音克隆上传业务错误: {upload_base_resp}")
-                return None
+                return f"CLONE_FAIL:{upload_base_resp.get('status_msg') or '录音上传失败'}"
 
             file_id = upload_data.get("file", {}).get("file_id")
             if not file_id:
                 logger.error(f"声音克隆上传返回无file_id: {upload_data}")
-                return None
+                return "CLONE_FAIL:上传成功但未获取到文件编号"
 
             logger.info(f"声音克隆 Step1 成功: file_id={file_id}")
 
             # ===== Step 2: 执行声音克隆 =====
             clone_url = f"{base_url}/v1/voice_clone"
-            logger.info(f"声音克隆 Step2: 克隆 voice_id={custom_voice_id}")
+            logger.info(f"声音克隆 Step2: 创建国内版 voice_id={custom_voice_id}")
 
             clone_resp = await client.post(
                 clone_url,
@@ -704,15 +713,14 @@ async def clone_voice_minimax(audio_file_path: str) -> str:
 
             if clone_resp.status_code != 200:
                 logger.error(f"声音克隆HTTP错误: {clone_resp.status_code} {clone_resp.text[:300]}")
-                return None
+                return f"CLONE_FAIL:音色复刻失败（{clone_resp.status_code}），请检查实名认证和账户额度"
 
             clone_data = clone_resp.json()
             clone_base_resp = clone_data.get("base_resp", {})
             if clone_base_resp.get("status_code", 0) != 0:
-                error_code = clone_base_resp.get("status_code", 0)
                 error_msg = clone_base_resp.get("status_msg", "")
                 logger.error(f"声音克隆业务错误: {clone_base_resp}")
-                return f"CLONE_FAIL:音色克隆9.9一次，请联系客服充值：15972426219"
+                return f"CLONE_FAIL:{error_msg or '音色复刻未通过，请检查录音和账号权限'}"
 
             # 克隆成功
             logger.info(f"✅ 声音克隆成功: voice_id={custom_voice_id}")
@@ -720,7 +728,7 @@ async def clone_voice_minimax(audio_file_path: str) -> str:
 
     except Exception as e:
         logger.error(f"声音克隆异常: {e}")
-        return None
+        return "CLONE_FAIL:网络连接失败，请稍后重试"
 
 
 # ========== 统一 TTS 入口（按 TTS_PROVIDER 分发）==========

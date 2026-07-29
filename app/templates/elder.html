@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="theme-color" content="#0f1830">
+<title>小暖 · 陪伴</title>
+<style>
+:root{--blue:#4c76ff;--ink:#17233d;--line:rgba(255,255,255,.25);--safe:#75ebb1}*{box-sizing:border-box}html,body{width:100%;height:100%;margin:0;overflow:hidden;background:#0f1830;font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Helvetica Neue",sans-serif;-webkit-font-smoothing:antialiased}button{font:inherit}.stage{position:relative;width:min(100%,520px);height:100dvh;margin:auto;overflow:hidden;background:linear-gradient(160deg,#182b56,#0e1730)}.portrait,.stage video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center;transition:opacity .35s ease}.portrait{display:none;background:linear-gradient(155deg,#aebfe5,#5e709b)}.portrait img{width:100%;height:100%;object-fit:cover;filter:saturate(.86) contrast(.98)}.veil{position:absolute;inset:0;pointer-events:none;background:linear-gradient(180deg,rgba(10,20,48,.5) 0%,rgba(10,20,48,0) 24%,rgba(7,13,28,.08) 56%,rgba(7,13,28,.78) 100%)}.people{position:absolute;z-index:2;top:max(18px,env(safe-area-inset-top));left:0;right:0;display:flex;gap:12px;padding:0 20px;overflow-x:auto;scrollbar-width:none}.people::-webkit-scrollbar{display:none}.person{position:relative;flex:0 0 auto;width:58px;height:58px;padding:0;border:2px solid transparent;border-radius:50%;background:rgba(255,255,255,.18);box-shadow:0 8px 22px rgba(4,12,31,.25);backdrop-filter:blur(10px);transition:transform .2s,border-color .2s}.person img,.person .initial{display:grid;width:100%;height:100%;place-items:center;overflow:hidden;border-radius:50%;object-fit:cover;background:linear-gradient(145deg,#dce7ff,#b8caee);color:#315de0;font-size:20px;font-weight:750}.person.on{border-color:#fff;transform:scale(1.12);box-shadow:0 0 0 3px rgba(76,118,255,.72),0 9px 23px rgba(4,12,31,.34)}.person.on:after{content:"";position:absolute;right:0;bottom:0;width:10px;height:10px;border:2px solid #fff;border-radius:50%;background:var(--safe)}.voice-dock{position:absolute;z-index:3;left:50%;bottom:max(40px,calc(env(safe-area-inset-bottom) + 24px));display:grid;place-items:center;transform:translateX(-50%);text-align:center}.talk{position:relative;width:92px;height:92px;border:0;border-radius:50%;display:grid;place-items:center;background:linear-gradient(145deg,#5b85ff,#315be0);color:#fff;box-shadow:0 15px 36px rgba(30,66,184,.52),inset 0 1px 1px rgba(255,255,255,.34);transition:transform .18s,background .2s}.talk:before{content:"";position:absolute;inset:-11px;border:1px solid rgba(255,255,255,.42);border-radius:50%}.talk svg{width:33px;height:33px;fill:none;stroke:currentColor;stroke-width:1.8}.talk b{position:absolute;top:105px;white-space:nowrap;color:#fff;font-size:13px;font-weight:650;text-shadow:0 1px 8px rgba(0,0,0,.4)}.talk.listening{background:linear-gradient(145deg,#ff9498,#ea5d68);transform:scale(.94);animation:breathe 1.35s infinite}.talk.thinking{background:linear-gradient(145deg,#687895,#34445f)}.talk.speaking{background:linear-gradient(145deg,#7e91d1,#4a5b97);animation:breatheBlue 1.35s infinite}@keyframes breathe{50%{box-shadow:0 0 0 16px rgba(247,105,112,.18),0 15px 36px rgba(226,80,91,.43)}}@keyframes breatheBlue{50%{box-shadow:0 0 0 16px rgba(143,166,255,.18),0 15px 36px rgba(72,100,207,.48)}}.live{position:absolute;z-index:2;right:18px;top:max(24px,calc(env(safe-area-inset-top) + 6px));display:flex;align-items:center;gap:6px;color:#fff;font-size:11px;text-shadow:0 1px 8px rgba(0,0,0,.3)}.live i{width:7px;height:7px;border-radius:50%;background:var(--safe);box-shadow:0 0 0 3px rgba(117,235,177,.18)}.bind{position:fixed;inset:0;z-index:10;display:none;align-items:center;justify-content:center;padding:22px;background:#f6f8ff;color:var(--ink)}.bind.show{display:flex}.bind-card{width:min(420px,100%);padding:28px 23px;background:#fff;border-radius:26px;box-shadow:0 24px 70px rgba(40,68,140,.15);text-align:center}.bind-icon{width:58px;height:58px;margin:auto;display:grid;place-items:center;border-radius:19px;background:#edf2ff;color:#3d6df2;font-size:25px}.bind h2{font-size:23px;letter-spacing:-.04em;margin:17px 0 8px}.bind p{margin:0;color:#7c879e;font-size:13px;line-height:1.7}.code{display:grid;grid-template-columns:repeat(6,1fr);gap:7px;margin:24px 0}.code input{width:100%;min-width:0;height:48px;border:1px solid #dde5f7;border-radius:12px;background:#f8faff;text-align:center;font-size:21px;font-weight:700;color:var(--ink);outline:none}.code input:focus{border-color:#3d6df2;background:#fff;box-shadow:0 0 0 3px rgba(61,109,242,.12)}.bind-btn{width:100%;height:50px;border:0;border-radius:14px;background:#3d6df2;color:#fff;font-weight:650;font-size:15px;box-shadow:0 10px 20px rgba(61,109,242,.22)}.error{min-height:18px;margin-top:9px;color:#db5d65;font-size:12px}.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+</style>
+</head>
+<body>
+<main class="stage" aria-label="小暖语音陪伴">
+  <video id="companionVideo" muted loop playsinline preload="auto" aria-label="小快陪伴影像">
+    <source src="../static/videos/xiaokuai-companion-loop.mp4" type="video/mp4">
+  </video>
+  <div class="portrait" id="portrait" aria-hidden="true"><img id="portraitImage" alt=""></div>
+  <div class="veil"></div>
+  <div class="people" id="people" aria-label="选择陪伴家人"></div>
+  <span class="live"><i></i><span id="liveLabel">陪伴中</span></span>
+  <div class="voice-dock">
+    <button class="talk" id="talk" onclick="toggleTalk()" aria-label="开始说话">
+      <svg viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="12" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>
+      <b id="talkText">开始说话</b>
+    </button>
+  </div>
+  <p class="sr-only" id="status" aria-live="polite">小暖正在陪伴</p>
+</main>
+<div class="bind" id="bind">
+  <div class="bind-card">
+    <div class="bind-icon">⌁</div><h2>连接家人的陪伴</h2>
+    <p>请让家人在家属端生成邀请码<br>再帮您输入下面六位数字</p>
+    <div class="code" id="code"></div><button class="bind-btn" onclick="bindDevice()">连接家人</button><div class="error" id="error"></div>
+  </div>
+</div>
+<script>
+const $=id=>document.getElementById(id);let members=[],selected=null,recognition=null,listening=false;let token=localStorage.getItem('companion_device_token');if(!token){token=crypto.randomUUID().replaceAll('-','');localStorage.setItem('companion_device_token',token)}
+// 视频加载完成后先停在一帧；静默时显示定格画面，绝不显示黑屏或自动播放。
+$('companionVideo').addEventListener('loadeddata',()=>{const v=$('companionVideo');if(v.paused&&v.currentTime===0)v.currentTime=.1},{once:true});
+document.addEventListener('DOMContentLoaded',async()=>{makeCodeInputs();if(new URLSearchParams(location.search).get('demo')==='1'){await loadMembers();return}const r=await fetch('/api/device/status/'+token),d=await r.json();if(!d.bound){$('bind').classList.add('show');return}await loadMembers()});
+function makeCodeInputs(){$('code').innerHTML=Array.from({length:6},(_,i)=>`<input inputmode="numeric" maxlength="1" aria-label="第${i+1}位">`).join('');const xs=[...$('code').querySelectorAll('input')];xs.forEach((x,i)=>{x.oninput=()=>{x.value=x.value.replace(/\D/g,'');if(x.value&&xs[i+1])xs[i+1].focus()};x.onkeydown=e=>{if(e.key==='Backspace'&&!x.value&&xs[i-1])xs[i-1].focus()};x.onpaste=e=>{e.preventDefault();const v=e.clipboardData.getData('text').replace(/\D/g,'').slice(0,6);[...v].forEach((c,j)=>xs[j].value=c);xs[Math.min(v.length,5)].focus()}})}
+async function bindDevice(){const code=[...$('code').querySelectorAll('input')].map(x=>x.value).join('');if(code.length!==6){$('error').textContent='请输入完整的六位邀请码';return}const r=await fetch('/api/device/bind',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({code,device_token:token,device_name:'老人陪伴设备'})}),d=await r.json();if(!r.ok){$('error').textContent=d.detail||'连接失败，请重新生成邀请码';return}$('bind').classList.remove('show');await loadMembers()}
+async function loadMembers(){const r=await fetch('/api/members'),d=await r.json();members=d.members||[];if(!members.length){$('status').textContent='家人正在准备陪伴内容';return}selected=members.find(x=>x.voice_cloned)||members[0];renderPeople();updateStage()}
+function renderPeople(){$('people').innerHTML=members.map(m=>`<button class="person ${m.id===selected.id?'on':''}" onclick="chooseMember(${m.id})" aria-label="切换到${escapeText(m.name)}的陪伴" title="${escapeText(m.name)}">${m.photo_path?`<img src="${m.photo_path}" alt="${escapeText(m.name)}">`:`<span class="initial">${escapeText(m.name.slice(0,1))}</span>`}</button>`).join('')}
+function chooseMember(id){const next=members.find(m=>m.id===id);if(!next||next.id===selected.id)return;selected=next;renderPeople();updateStage();speak(`${selected.name}在这里陪您。`)}
+function pausePresence(){const v=$('companionVideo');v.pause()}
+function playPresence(){const v=$('companionVideo');if(selected&&selected.id===1)v.play().catch(()=>{})}
+function updateStage(){const hasVideo=selected.id===1;$('companionVideo').style.display=hasVideo?'block':'none';$('portrait').style.display=hasVideo?'none':'block';if(!hasVideo){$('portraitImage').src=selected.photo_path||'';$('portraitImage').alt=selected.name}else pausePresence();$('status').textContent=selected.name+'在这里陪您';$('liveLabel').textContent='陪伴中'}
+function setMode(mode,text){$('talk').className='talk '+mode;$('talkText').textContent=text;$('status').textContent=text}
+function toggleTalk(){if(!selected){speak('家人还在为您准备，请稍后再试。');return}if(listening){recognition?.stop();return}const SR=window.SpeechRecognition||window.webkitSpeechRecognition;if(!SR){speak('这个设备暂时不能听写，请让家人帮助检查。');return}recognition=new SR();recognition.lang='zh-CN';recognition.interimResults=false;recognition.continuous=false;recognition.onstart=()=>{listening=true;setMode('listening','我在听')};recognition.onresult=e=>sendMessage(e.results[0][0].transcript);recognition.onerror=()=>{setMode('','再说一次');speak('刚才没有听清，我们再说一次。')};recognition.onend=()=>{listening=false;if(!$('talk').classList.contains('thinking')&&!$('talk').classList.contains('speaking'))setMode('','开始说话')};recognition.start()}
+async function sendMessage(text){setMode('thinking','正在想');try{const r=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({member_id:selected.id,message:text})}),d=await r.json();if(!r.ok)throw Error();if(d.message.audio_url)playAudio(d.message.audio_url,d.message.content);else speak(d.message.content)}catch(e){speak('刚才没有连接好，我们休息一下再试。')}}
+function playAudio(url,fallback){setMode('speaking',selected.name+'在说话');playPresence();const a=new Audio(url);const done=()=>{pausePresence();setMode('','开始说话')};a.addEventListener('ended',done,{once:true});a.addEventListener('error',()=>{done();speak(fallback)},{once:true});a.play().catch(()=>{done();speak(fallback)})}
+function speak(text){speechSynthesis.cancel();setMode('speaking',selected?selected.name+'在说话':'小暖在说话');playPresence();const u=new SpeechSynthesisUtterance(text);u.lang='zh-CN';u.rate=.82;u.onend=()=>{pausePresence();setMode('','开始说话')};u.onerror=()=>{pausePresence();setMode('','开始说话')};speechSynthesis.speak(u)}
+function escapeText(text){const d=document.createElement('div');d.textContent=text||'';return d.innerHTML}
+</script>
+</body>
+</html>

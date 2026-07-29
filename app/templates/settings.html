@@ -1,0 +1,230 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>家庭设置 · 小暖</title>
+<style>
+:root{--ink:#17231f;--muted:#71807a;--soft:#9ba7a2;--line:#e4e9e5;--paper:#fff;--bg:#f4f6f2;--brand:#176b57;--tint:#e8f2ed;--violet:#675d99;--violet-tint:#f0eef7;--warm:#b86e3f;--warm-tint:#f8eee6;--danger:#b44b4b}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"PingFang SC",sans-serif;-webkit-font-smoothing:antialiased}button,input,textarea,select{font:inherit}.app{max-width:680px;margin:auto;padding:0 17px 100px}.top{position:sticky;top:0;z-index:8;margin:0 -17px;padding:14px 17px 10px;background:rgba(244,246,242,.92);backdrop-filter:blur(18px);display:flex;align-items:center;justify-content:space-between}.top h1{font-size:20px;margin:0;letter-spacing:-.04em}.top p{font-size:10px;color:var(--muted);margin:3px 0 0}.close{width:40px;height:40px;border:1px solid var(--line);border-radius:14px;background:#fff;font-size:20px;color:var(--muted)}.tabs{display:flex;background:#e9edea;border-radius:16px;padding:4px;margin:10px 0 22px}.tab{flex:1;border:0;background:transparent;color:var(--muted);padding:9px;border-radius:12px;font-size:12px}.tab.on{background:#fff;color:var(--ink);box-shadow:0 5px 16px rgba(23,54,45,.07)}.page{display:none}.page.on{display:block}.section{margin-bottom:26px}.section-head{display:flex;align-items:end;justify-content:space-between;margin-bottom:11px}.section-head h2{font-size:15px;margin:0}.section-head span{font-size:9px;color:var(--soft)}.card{background:#fff;border:1px solid rgba(255,255,255,.9);border-radius:24px;box-shadow:0 14px 42px rgba(28,60,51,.06);padding:17px}.profile{display:flex;align-items:center;gap:13px}.profile-icon{width:50px;height:50px;border-radius:17px;background:var(--warm-tint);color:var(--warm);display:grid;place-items:center;font-size:21px}.profile-main{flex:1}.profile-main strong{font-size:15px}.profile-main p{font-size:10px;color:var(--muted);margin:4px 0 0;line-height:1.5}.edit{border:0;background:var(--tint);color:var(--brand);border-radius:11px;padding:8px 10px;font-size:10px}.members{display:grid;gap:10px}.member{display:flex;align-items:center;gap:12px;background:#fff;border:1px solid var(--line);border-radius:20px;padding:12px}.avatar{width:47px;height:47px;border-radius:15px;background:var(--tint);display:grid;place-items:center;color:var(--brand);font-weight:700;overflow:hidden}.avatar img{width:100%;height:100%;object-fit:cover}.member-main{flex:1}.member-main strong{font-size:13px}.member-main p{font-size:9px;color:var(--muted);margin:4px 0 0}.voice{display:inline-block;color:var(--violet);background:var(--violet-tint);border-radius:8px;padding:3px 6px;margin-top:5px;font-size:8px}.member-actions button{border:0;background:transparent;color:var(--soft);padding:6px}.add{width:100%;border:1px dashed #b9ccc4;background:rgba(232,242,237,.55);color:var(--brand);border-radius:18px;padding:13px;font-size:11px;margin-top:10px}.field{margin:13px 0}.field label{display:block;font-size:10px;color:var(--muted);margin:0 0 6px 2px}.field input,.field textarea,.field select{width:100%;border:1px solid var(--line);background:#f9faf9;border-radius:14px;padding:12px;outline:0;color:var(--ink)}.field textarea{min-height:72px;resize:vertical}.field input:focus,.field textarea:focus{border-color:#9fc2b6;background:#fff}.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}.save{width:100%;border:0;border-radius:15px;background:var(--ink);color:#fff;padding:13px;font-size:12px;margin-top:6px}.weather-line{display:flex;gap:8px}.weather-line input{flex:1}.verify{border:0;background:var(--tint);color:var(--brand);border-radius:13px;padding:0 12px;font-size:10px}.weather-result{font-size:10px;color:var(--muted);line-height:1.6;margin-top:9px}.times{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.time-card{background:#f8faf8;border-radius:16px;padding:11px}.time-card label{display:block;font-size:9px;color:var(--muted);margin-bottom:7px}.time-card input{width:100%;border:0;background:transparent;font-weight:650;color:var(--ink)}.event{display:flex;align-items:center;gap:12px;padding:11px 0;border-top:1px solid var(--line)}.event:first-child{border:0}.event-time{font-size:16px;font-weight:700}.event-main{flex:1}.event-main b{font-size:11px}.event-main p{font-size:8px;color:var(--soft);margin:3px 0}.danger{border:0;background:transparent;color:var(--danger);font-size:10px}.hint{background:var(--violet-tint);border-radius:18px;padding:14px;font-size:10px;line-height:1.7;color:#5f5883}.modal{position:fixed;z-index:20;inset:0;background:rgba(13,25,21,.45);display:none;align-items:flex-end;justify-content:center;backdrop-filter:blur(5px)}.modal.show{display:flex}.sheet{width:100%;max-width:680px;max-height:91vh;overflow:auto;background:var(--bg);border-radius:28px 28px 0 0;padding:18px 17px 32px}.sheet-head{display:flex;align-items:center;justify-content:space-between}.sheet-head h3{margin:0;font-size:17px}.sheet-close{border:0;background:#e8ece9;width:36px;height:36px;border-radius:12px}.upload{display:grid;grid-template-columns:1fr 1fr;gap:8px}.upload label{display:block;background:#fff;border:1px dashed #bdcbc5;border-radius:16px;padding:13px;text-align:center;font-size:10px;color:var(--muted)}.upload input{display:none}.toast{position:fixed;z-index:40;left:50%;bottom:50px;transform:translateX(-50%);background:var(--ink);color:#fff;border-radius:12px;padding:10px 15px;font-size:10px}.empty{text-align:center;color:var(--soft);font-size:10px;padding:18px}
+body.setup #care>.section:nth-child(1),body.setup #care>.section:nth-child(2){display:none}
+/* 与家属首页共用同一套冷白蓝底色，避免 iframe 像跳进另一套产品。 */
+:root{--ink:#17233d;--muted:#7f8ba3;--soft:#9ba7b8;--line:#e9edf6;--bg:#f6f8ff;--brand:#3d6df2;--tint:#edf2ff;--violet:#675d99;--violet-tint:#f0efff;--warm:#bd7545;--warm-tint:#fff2e9}
+.top{background:rgba(246,248,255,.92)}.tabs{background:#e9edf6}.tab.on{box-shadow:0 5px 16px rgba(45,77,150,.08)}.card{box-shadow:0 14px 42px rgba(44,72,139,.06)}.add{border-color:#c5d3f5;background:#f2f6ff}.field input:focus,.field textarea:focus{border-color:#9fb8ff}.sheet-close{background:#e9edf6}
+</style>
+</head>
+<body>
+<div class="app">
+<header class="top">
+<div>
+<h1>家庭设置</h1>
+<p>只设置一次，陪伴会慢慢了解这个家</p>
+</div>
+<button class="close" onclick="closePage()">×</button>
+</header>
+<div class="tabs">
+<button class="tab on" data-tab="family" onclick="switchTab('family')">家庭与声音</button>
+<button class="tab" data-tab="care" onclick="switchTab('care')">天气与日程</button>
+</div>
+<section class="page on" id="family">
+<div class="section">
+<div class="section-head">
+<h2>被陪伴的人</h2>
+<span>长者画像</span>
+</div>
+<div class="card profile">
+<div class="profile-icon">♡</div>
+<div class="profile-main">
+<strong id="elderName">还没有填写</strong>
+<p id="elderMeta">称呼、情况和家属担心的事，会帮助 AI 更温柔地回应。</p>
+</div>
+<button class="edit" onclick="openElder()">编辑</button>
+</div>
+</div>
+<div class="section">
+<div class="section-head">
+<h2>家人数字分身</h2>
+<span id="memberCount">0 位家人</span>
+</div>
+<div class="members" id="members">
+</div>
+<button class="add" onclick="openMember()">＋ 添加一位家人</button>
+</div>
+<div class="hint">声音克隆需要 MiniMax 国际版。建议上传 10 秒至 5 分钟、环境安静、只有一人说话的 mp3 / m4a / wav，最大 20MB。</div>
+</section>
+<section class="page" id="care">
+<div class="section">
+<div class="section-head">
+<h2>所在城市与天气</h2>
+<span>Open-Meteo 实时数据</span>
+</div>
+<div class="card">
+<div class="weather-line">
+<input id="city" placeholder="例如：深圳">
+<button class="verify" onclick="saveCity()">验证天气</button>
+</div>
+<div class="weather-result" id="weatherResult">天气会用于每天的早安播报。</div>
+</div>
+</div>
+<div class="section">
+<div class="section-head">
+<h2>自动播报时间</h2>
+<span>App 版将使用系统通知</span>
+</div>
+<div class="card">
+<div class="times">
+<div class="time-card">
+<label>早安</label>
+<input type="time" id="morning">
+</div>
+<div class="time-card">
+<label>午间</label>
+<input type="time" id="noon">
+</div>
+<div class="time-card">
+<label>晚安</label>
+<input type="time" id="evening">
+</div>
+</div>
+<button class="save" onclick="saveTimes()">保存播报时间</button>
+</div>
+</div>
+<div class="section">
+<div class="section-head">
+<h2>家庭日程</h2>
+<button class="edit" onclick="openEvent()">添加</button>
+</div>
+<div class="card" id="events">
+</div>
+</div>
+</section>
+</div>
+<div class="modal" id="memberModal" onclick="if(event.target===this)closeModal('memberModal')">
+<div class="sheet">
+<div class="sheet-head">
+<h3 id="memberTitle">添加家人</h3>
+<button class="sheet-close" onclick="closeModal('memberModal')">×</button>
+</div>
+<input type="hidden" id="memberId">
+<div class="row2">
+<div class="field">
+<label>姓名 *</label>
+<input id="mName">
+</div>
+<div class="field">
+<label>与长者关系 *</label>
+<input id="mRelation" placeholder="女儿、老伴">
+</div>
+</div>
+<div class="row2">
+<div class="field">
+<label>喜欢的食物 *</label>
+<input id="mFood">
+</div>
+<div class="field">
+<label>喜欢的颜色 *</label>
+<input id="mColor">
+</div>
+</div>
+<div class="field">
+<label>性格特点 *</label>
+<input id="mPersonality">
+</div>
+<div class="field">
+<label>常说的话</label>
+<input id="mCatchphrase">
+</div>
+<div class="field">
+<label>最难忘的共同记忆 *</label>
+<textarea id="mSpecial">
+</textarea>
+</div>
+<div class="field">
+<label>其他记忆</label>
+<textarea id="mMemory">
+</textarea>
+</div>
+<div class="upload">
+<label>上传照片<input type="file" id="mPhoto" accept="image/*">
+</label>
+<label>上传声音<input type="file" id="mVoice" accept="audio/mp3,audio/mp4,audio/wav,.m4a">
+</label>
+</div>
+<button class="save" onclick="saveMember()">保存家人</button>
+</div>
+</div>
+<div class="modal" id="elderModal" onclick="if(event.target===this)closeModal('elderModal')">
+<div class="sheet">
+<div class="sheet-head">
+<h3>长者画像</h3>
+<button class="sheet-close" onclick="closeModal('elderModal')">×</button>
+</div>
+<div class="row2">
+<div class="field">
+<label>称呼 *</label>
+<input id="eName">
+</div>
+<div class="field">
+<label>年龄</label>
+<input id="eAge" type="number">
+</div>
+</div>
+<div class="field">
+<label>症状与日常表现</label>
+<textarea id="eSymptoms">
+</textarea>
+</div>
+<div class="field">
+<label>家属最担心什么</label>
+<textarea id="eWorries">
+</textarea>
+</div>
+<button class="save" onclick="saveElder()">保存画像</button>
+</div>
+</div>
+<div class="modal" id="eventModal" onclick="if(event.target===this)closeModal('eventModal')">
+<div class="sheet">
+<div class="sheet-head">
+<h3>添加日程</h3>
+<button class="sheet-close" onclick="closeModal('eventModal')">×</button>
+</div>
+<div class="field">
+<label>日程内容</label>
+<input id="eventTitle" placeholder="例如：饭后服药">
+</div>
+<div class="field">
+<label>提醒时间</label>
+<input id="eventTime" type="time" value="09:00">
+</div>
+<button class="save" onclick="saveEvent()">添加到每天</button>
+</div>
+</div>
+<script>
+let members=[],elder=null,events=[];const $=id=>document.getElementById(id);const esc=s=>{const d=document.createElement('div');d.textContent=s||'';return d.innerHTML};document.addEventListener('DOMContentLoaded',()=>Promise.all([loadMembers(),loadElder(),loadConfig(),loadEvents()]));function closePage(){parent.postMessage({type:'close-settings'},location.origin)}function switchTab(t){document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('on',x.dataset.tab===t));document.querySelectorAll('.page').forEach(x=>x.classList.toggle('on',x.id===t))}function show(id){$(id).classList.add('show')}function closeModal(id){$(id).classList.remove('show')}
+async function loadMembers(){const r=await fetch('/api/members');members=(await r.json()).members||[];$('memberCount').textContent=members.length+' 位家人';$('members').innerHTML=members.length?members.map(m=>`<div class="member">
+<div class="avatar">${m.photo_path?`<img src="${m.photo_path}">`:esc(m.name.slice(0,1))}</div>
+<div class="member-main">
+<strong>${esc(m.name)} · ${esc(m.relation)}</strong>
+<p>${esc(m.personality||'还没有填写性格')}</p>
+<span class="voice">${m.voice_cloned?'声音已克隆':m.voice_status==='cloning'?'正在克隆':'文字分身'}</span>
+</div>
+<div class="member-actions">
+<button onclick="openMember(${m.id})">编辑</button>
+<button onclick="removeMember(${m.id})">删除</button>
+</div>
+</div>`).join(''):'<div class="empty">还没有家人，添加后就能创建数字分身。</div>'}
+function openMember(id){const m=members.find(x=>x.id===id);$('memberId').value=m?.id||'';$('memberTitle').textContent=m?'编辑家人':'添加家人';$('mName').value=m?.name||'';$('mRelation').value=m?.relation||'';$('mFood').value=m?.favorite_food||'';$('mColor').value=m?.favorite_color||'';$('mPersonality').value=m?.personality||'';$('mCatchphrase').value=m?.catchphrase||'';$('mSpecial').value=m?.special_memory||'';$('mMemory').value=m?.memory_snippets||'';$('mPhoto').value='';$('mVoice').value='';show('memberModal')}
+async function saveMember(){const req=[['mName','姓名'],['mRelation','关系'],['mFood','喜欢的食物'],['mColor','喜欢的颜色'],['mPersonality','性格'],['mSpecial','共同记忆']];for(const[id,n]of req)if(!$(id).value.trim()){toast('请填写'+n);return}const fd=new FormData();[['name','mName'],['relation','mRelation'],['favorite_food','mFood'],['favorite_color','mColor'],['personality','mPersonality'],['catchphrase','mCatchphrase'],['special_memory','mSpecial'],['memory_snippets','mMemory']].forEach(([k,id])=>fd.append(k,$(id).value.trim()));if($('mPhoto').files[0])fd.append('photo',$('mPhoto').files[0]);if($('mVoice').files[0])fd.append('voice_sample',$('mVoice').files[0]);const id=$('memberId').value,r=await fetch(id?'/api/members/'+id:'/api/members',{method:id?'PUT':'POST',body:fd});if(!r.ok){const d=await r.json();toast(d.detail||'保存失败');return}closeModal('memberModal');toast('家人已保存');loadMembers()}
+async function removeMember(id){if(!confirm('确定删除这位家人吗？'))return;await fetch('/api/members/'+id,{method:'DELETE'});loadMembers()}
+async function loadElder(){const r=await fetch('/api/admin/elder');elder=(await r.json()).elder;if(elder){$('elderName').textContent=elder.name;$('elderMeta').textContent=[elder.age?elder.age+'岁':'',elder.symptoms,elder.worries].filter(Boolean).join(' · ')||'画像已经建立'}else{$('elderName').textContent='还没有填写'}}function openElder(){$('eName').value=elder?.name||'';$('eAge').value=elder?.age||'';$('eSymptoms').value=elder?.symptoms||'';$('eWorries').value=elder?.worries||'';show('elderModal')}async function saveElder(){if(!$('eName').value.trim()){toast('请填写称呼');return}await fetch('/api/admin/elder',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name:$('eName').value.trim(),age:$('eAge').value?Number($('eAge').value):null,gender:elder?.gender||'',education:elder?.education||'',symptoms:$('eSymptoms').value.trim(),severity:elder?.severity||'',worries:$('eWorries').value.trim()})});closeModal('elderModal');toast('画像已保存');loadElder()}
+async function loadConfig(){const r=await fetch('/api/admin/config'),d=await r.json(),s=d.schedules||{};$('city').value=d.weather_city||'';$('morning').value=s.morning||'07:30';$('noon').value=s.noon||'14:00';$('evening').value=s.evening||'20:00'}async function saveCity(){const city=$('city').value.trim();if(!city)return;await fetch('/api/admin/config',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({weather_city:city,weather_lat:'',weather_lon:''})});const r=await fetch('/api/admin/weather?city='+encodeURIComponent(city)),d=await r.json();$('weatherResult').textContent=r.ok?`${d.location} · ${d.description} ${d.temperature}℃ · 体感 ${d.feels_like}℃`:d.detail;toast(r.ok?'真实天气已连接':'城市已保存，天气暂时不可用')}async function saveTimes(){await fetch('/api/admin/config',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({schedules:{morning:$('morning').value,noon:$('noon').value,evening:$('evening').value}})});toast('时间已保存')}
+async function loadEvents(){const r=await fetch('/api/admin/events');events=(await r.json()).events||[];$('events').innerHTML=events.length?events.map(e=>`<div class="event">
+<div class="event-time">${e.event_time}</div>
+<div class="event-main">
+<b>${esc(e.title)}</b>
+<p>${e.repeat_rule==='daily'?'每天':'自定义重复'}</p>
+</div>
+<button class="danger" onclick="removeEvent(${e.id})">删除</button>
+</div>`).join(''):'<div class="empty">还没有家庭日程。</div>'}function openEvent(){$('eventTitle').value='';show('eventModal')}async function saveEvent(){if(!$('eventTitle').value.trim()){toast('请填写日程内容');return}await fetch('/api/admin/events',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({title:$('eventTitle').value.trim(),event_time:$('eventTime').value,repeat_rule:'daily',repeat_days:'',event_date:'',is_active:true})});closeModal('eventModal');toast('日程已添加');loadEvents()}async function removeEvent(id){await fetch('/api/admin/events/'+id,{method:'DELETE'});loadEvents()}function toast(t){const e=document.createElement('div');e.className='toast';e.textContent=t;document.body.appendChild(e);setTimeout(()=>e.remove(),2200)}
+</script>
+</body>
+</html>

@@ -12,14 +12,18 @@ except Exception:
     pass
 
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import HTMLResponse, FileResponse
+from fastapi.responses import HTMLResponse, FileResponse, RedirectResponse
 
 from app.models.database import init_db
 from app.api.members import router as members_router
 from app.api.broadcast import router as broadcast_router
 from app.api.admin import router as admin_router
 from app.api.emotion import router as emotion_router
+from app.api.chat import router as chat_router
+from app.api.device import router as device_router
+from app.api.insights import router as insights_router
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -72,34 +76,79 @@ async def lifespan(app: FastAPI):
     logger.info("应用关闭")
 
 
-app = FastAPI(title="Memory Companion", version="2.0", lifespan=lifespan)
+app = FastAPI(title="小暖", version="2.1", lifespan=lifespan)
+
+# Web、PWA 与 Capacitor 原生容器只允许访问已显式配置的来源。
+# 正式环境请设置 CORS_ORIGINS=https://app.example.com,capacitor://localhost
+cors_origins = [
+    item.strip() for item in os.environ.get(
+        "CORS_ORIGINS", "http://localhost:8000,http://localhost,capacitor://localhost"
+    ).split(",") if item.strip()
+]
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=cors_origins,
+    allow_credentials=True,
+    allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allow_headers=["Content-Type", "Authorization"],
+)
 
 # 注册路由
 app.include_router(members_router)
 app.include_router(broadcast_router)
 app.include_router(admin_router)
 app.include_router(emotion_router)
+app.include_router(chat_router)
+app.include_router(device_router)
+app.include_router(insights_router)
 
 # 静态文件
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
 
+@app.get("/health")
+async def health_check():
+    """健康检查端点，供部署平台探测应用存活状态"""
+    return {"status": "ok", "service": "xiaonuan", "version": app.version}
+
+
 @app.get("/", response_class=HTMLResponse)
 async def root():
-    """根路径重定向到播放页"""
-    return FileResponse(os.path.join(TEMPLATES_DIR, "play.html"))
+    return FileResponse(os.path.join(TEMPLATES_DIR, "family.html"))
 
 
 @app.get("/config", response_class=HTMLResponse)
 async def config_page():
-    """家属配置页"""
-    return FileResponse(os.path.join(TEMPLATES_DIR, "config.html"))
+    """保留旧入口，统一进入新的家属端设置页。"""
+    return RedirectResponse(url="/family#settings", status_code=307)
+
+
+@app.get("/settings-content", response_class=HTMLResponse)
+async def settings_content():
+    """家属端内嵌的家人、声音、日程与播报设置。"""
+    return FileResponse(os.path.join(TEMPLATES_DIR, "settings.html"))
+
+
+@app.get("/family", response_class=HTMLResponse)
+async def family_page():
+    return FileResponse(os.path.join(TEMPLATES_DIR, "family.html"))
 
 
 @app.get("/play", response_class=HTMLResponse)
 async def play_page():
-    """患者播放页"""
-    return FileResponse(os.path.join(TEMPLATES_DIR, "play.html"))
+    return FileResponse(os.path.join(TEMPLATES_DIR, "elder.html"))
+
+
+@app.get("/privacy", response_class=HTMLResponse)
+async def privacy_page():
+    """上架前可公开访问的隐私说明入口。正式主体与联系方式见模板。"""
+    return FileResponse(os.path.join(TEMPLATES_DIR, "privacy.html"))
+
+
+@app.get("/voice-consent", response_class=HTMLResponse)
+async def voice_consent_page():
+    """声音复刻的授权说明入口。"""
+    return FileResponse(os.path.join(TEMPLATES_DIR, "voice-consent.html"))
 
 
 @app.websocket("/ws")
