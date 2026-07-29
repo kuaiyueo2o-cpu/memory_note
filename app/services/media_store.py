@@ -1,5 +1,6 @@
 import os
 import tempfile
+from urllib.parse import urlparse
 from typing import Optional
 
 import httpx
@@ -28,8 +29,14 @@ def blob_runtime_config() -> tuple[str, str]:
 
 
 async def fetch_blob_bytes(pathname: str) -> tuple[bytes, str]:
-    store_id, token = blob_runtime_config()
-    blob_url = f"https://{store_id}.private.blob.vercel-storage.com/{pathname}"
+    _, token = blob_runtime_config()
+    from vercel.blob import list_objects
+
+    listing = list_objects(prefix=pathname, limit=10, token=token)
+    blob_item = next((item for item in listing.blobs if item.pathname == pathname), None)
+    if not blob_item:
+        raise FileNotFoundError("Blob 文件不存在")
+    blob_url = blob_item.url
     async with httpx.AsyncClient(timeout=60.0, follow_redirects=True) as client:
         resp = await client.get(blob_url, headers={"Authorization": f"Bearer {token}"})
         resp.raise_for_status()
@@ -80,8 +87,13 @@ async def materialize_path_to_temp(path_or_url: str, suffix: str = "") -> str:
         )
         data, _ = await fetch_blob_bytes(blob_path)
     elif path_or_url.startswith("http://") or path_or_url.startswith("https://"):
+        headers = {}
+        host = urlparse(path_or_url).hostname or ""
+        if host.endswith(".private.blob.vercel-storage.com"):
+            _, token = blob_runtime_config()
+            headers["Authorization"] = f"Bearer {token}"
         async with httpx.AsyncClient(timeout=60.0) as client:
-            resp = await client.get(path_or_url)
+            resp = await client.get(path_or_url, headers=headers)
             resp.raise_for_status()
             data = resp.content
     else:
