@@ -131,14 +131,21 @@ async def send(payload:ChatIn, db:Session=Depends(get_db)):
     # 陪聊回复优先使用该家人的已克隆音色。合成失败时仍保留文字回复，前端可回退到系统朗读。
     audio_path = None
     try:
-        from app.services.pipeline import AUDIO_DIR, synthesize_tts
+        from app.services.pipeline import synthesize_tts
+        from app.services.media_store import save_media_bytes
         clone_id = member.voice_clone_id or None
         audio_data = await synthesize_tts(reply, clone_id)
         if audio_data:
             filename = f"chat_{member.id}_{uuid.uuid4().hex[:12]}.mp3"
-            with open(os.path.join(AUDIO_DIR, filename), "wb") as audio_file:
-                audio_file.write(audio_data)
-            audio_path = f"/static/audio/{filename}"
+            audio_path = await save_media_bytes(
+                pathname=f"audio/{filename}",
+                body=audio_data,
+                content_type="audio/mpeg",
+                local_dir=os.path.join(os.path.dirname(__file__), "..", "static", "audio"),
+                local_filename=filename,
+                local_url=f"/static/audio/{filename}",
+                expose_via_app=True,
+            )
     except Exception:
         # 音频属于增强能力，不让 TTS 短暂故障影响老人继续文字/系统语音陪聊。
         audio_path = None

@@ -4,6 +4,7 @@ import logging
 from datetime import date, datetime
 from sqlalchemy.orm import Session
 from app.models.models import DailyBroadcast, FamilyMember, Elder
+from app.services.media_store import save_media_bytes
 
 logger = logging.getLogger(__name__)
 
@@ -13,6 +14,18 @@ AUDIO_DIR = (
     else os.path.join(os.path.dirname(__file__), "..", "static", "audio")
 )
 os.makedirs(AUDIO_DIR, exist_ok=True)
+
+
+async def _persist_audio_bytes(audio_bytes: bytes, filename: str) -> str:
+    return await save_media_bytes(
+        pathname=f"audio/{filename}",
+        body=audio_bytes,
+        content_type="audio/mpeg",
+        local_dir=AUDIO_DIR,
+        local_filename=filename,
+        local_url=f"/static/audio/{filename}",
+        expose_via_app=True,
+    )
 
 # ========== TTS 服务商开关 ==========
 # 可选 "minimax"（MiniMax Speech-02，付费）或 "mimo"（小米 MiMo，限时免费）。
@@ -921,10 +934,7 @@ async def generate_single_broadcast(db: Session, period: str, force: bool = Fals
         audio_data = await synthesize_tts(script, voice_id)
         if audio_data:
             audio_filename = f"{today}_{period}.mp3"
-            audio_file_path = os.path.join(AUDIO_DIR, audio_filename)
-            with open(audio_file_path, "wb") as f:
-                f.write(audio_data)
-            audio_path = f"/static/audio/{audio_filename}"
+            audio_path = await _persist_audio_bytes(audio_data, audio_filename)
 
         # 存为 draft 状态
         broadcast = db.query(DailyBroadcast).filter(
@@ -1288,10 +1298,7 @@ async def generate_daily_broadcasts(db: Session, force: bool = False) -> dict:
                 combined_audio = await concat_audio_segments(member_audio_segments)
                 if combined_audio:
                     audio_filename = f"{today}_{period}.mp3"
-                    audio_file_path = os.path.join(AUDIO_DIR, audio_filename)
-                    with open(audio_file_path, "wb") as f:
-                        f.write(combined_audio)
-                    audio_path = f"/static/audio/{audio_filename}"
+                    audio_path = await _persist_audio_bytes(combined_audio, audio_filename)
 
             # 存入数据库
             broadcast = db.query(DailyBroadcast).filter(
@@ -1409,10 +1416,7 @@ async def generate_demo_broadcasts(db: Session):
         audio_data = await synthesize_tts(demo_scripts[period], None)
         if audio_data:
             audio_filename = f"demo_{period}.mp3"
-            audio_file_path = os.path.join(AUDIO_DIR, audio_filename)
-            with open(audio_file_path, "wb") as f:
-                f.write(audio_data)
-            audio_path = f"/static/audio/{audio_filename}"
+            audio_path = await _persist_audio_bytes(audio_data, audio_filename)
         else:
             # TTS失败时仍设置路径（前端会回退到浏览器语音合成）
             logger.warning(f"Demo TTS生成失败({period})，音频将不可用")

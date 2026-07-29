@@ -24,6 +24,7 @@ from app.api.emotion import router as emotion_router
 from app.api.chat import router as chat_router
 from app.api.device import router as device_router
 from app.api.insights import router as insights_router
+from app.api.media import router as media_router
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -101,6 +102,7 @@ app.include_router(emotion_router)
 app.include_router(chat_router)
 app.include_router(device_router)
 app.include_router(insights_router)
+app.include_router(media_router)
 
 # 静态文件
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")

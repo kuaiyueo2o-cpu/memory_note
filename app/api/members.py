@@ -1,12 +1,12 @@
 import os
 import uuid
-import shutil
 import logging
 import asyncio
 from fastapi import APIRouter, UploadFile, File, Form, Depends, HTTPException, BackgroundTasks
 from sqlalchemy.orm import Session
 from app.models.database import get_db, SessionLocal
 from app.models.models import FamilyMember
+from app.services.media_store import save_media_bytes, materialize_path_to_temp
 
 logger = logging.getLogger(__name__)
 
@@ -79,12 +79,6 @@ async def _do_voice_clone(member_id: int, voice_file_path: str):
         db.commit()
     finally:
         db.close()
-
-
-def _save_upload(upload: UploadFile, target_dir: str, filename: str) -> None:
-    path = os.path.join(target_dir, filename)
-    with open(path, "wb") as f:
-        shutil.copyfileobj(upload.file, f)
 
 
 @router.get("")
@@ -180,15 +174,34 @@ async def add_member(
     # 保存照片（安全文件名）
     if photo and photo.filename:
         photo_filename = _safe_filename(member.id, photo.filename, ".jpg")
-        _save_upload(photo, PHOTO_DIR, photo_filename)
-        member.photo_path = f"/static/uploads/photos/{photo_filename}"
+        photo_bytes = await photo.read()
+        member.photo_path = await save_media_bytes(
+            pathname=f"photos/{photo_filename}",
+            body=photo_bytes,
+            content_type=photo.content_type or "image/jpeg",
+            local_dir=PHOTO_DIR,
+            local_filename=photo_filename,
+            local_url=f"/static/uploads/photos/{photo_filename}",
+            expose_via_app=True,
+        )
 
     # 保存声音样本，触发真正的声音克隆
     voice_cloning = False
+    voice_file_path = None
     if voice_sample and voice_sample.filename:
         voice_filename = _safe_filename(member.id, voice_sample.filename, ".mp3")
-        _save_upload(voice_sample, VOICE_DIR, voice_filename)
-        member.voice_sample_path = f"/static/uploads/voices/{voice_filename}"
+        voice_bytes = await voice_sample.read()
+        member.voice_sample_path = await save_media_bytes(
+            pathname=f"voices/{voice_filename}",
+            body=voice_bytes,
+            content_type=voice_sample.content_type or "audio/mpeg",
+            local_dir=VOICE_DIR,
+            local_filename=voice_filename,
+            local_url=f"/static/uploads/voices/{voice_filename}",
+        )
+        voice_file_path = os.path.join(VOICE_DIR, voice_filename)
+        with open(voice_file_path, "wb") as temp_voice:
+            temp_voice.write(voice_bytes)
         # 先设为"克隆中"状态（用特殊标记），后台异步完成真正的克隆
         member.voice_clone_id = "cloning..."
         voice_cloning = True
@@ -198,7 +211,6 @@ async def add_member(
 
     # 后台异步执行声音克隆
     if voice_cloning:
-        voice_file_path = os.path.join(VOICE_DIR, voice_filename)
         asyncio.create_task(_do_voice_clone(member.id, voice_file_path))
 
     return {
@@ -221,11 +233,7 @@ async def reclone_voice(member_id: int, db: Session = Depends(get_db)):
 
     # 找到声音文件的本地路径
     # voice_sample_path 格式: /static/uploads/voices/xxx.mp3
-    relative_path = member.voice_sample_path.lstrip("/")  # static/uploads/voices/xxx.mp3
-    voice_file_path = os.path.join(APP_DIR, relative_path)
-
-    if not os.path.exists(voice_file_path):
-        raise HTTPException(status_code=404, detail="声音文件不存在，请重新上传")
+    voice_file_path = await materialize_path_to_temp(member.voice_sample_path, suffix=".mp3")
 
     # 标记为克隆中
     member.voice_clone_id = "cloning..."
@@ -291,14 +299,33 @@ async def update_member(
 
     if photo and photo.filename:
         photo_filename = _safe_filename(member.id, photo.filename, ".jpg")
-        _save_upload(photo, PHOTO_DIR, photo_filename)
-        member.photo_path = f"/static/uploads/photos/{photo_filename}"
+        photo_bytes = await photo.read()
+        member.photo_path = await save_media_bytes(
+            pathname=f"photos/{photo_filename}",
+            body=photo_bytes,
+            content_type=photo.content_type or "image/jpeg",
+            local_dir=PHOTO_DIR,
+            local_filename=photo_filename,
+            local_url=f"/static/uploads/photos/{photo_filename}",
+            expose_via_app=True,
+        )
 
     voice_cloning = False
+    voice_file_path = None
     if voice_sample and voice_sample.filename:
         voice_filename = _safe_filename(member.id, voice_sample.filename, ".mp3")
-        _save_upload(voice_sample, VOICE_DIR, voice_filename)
-        member.voice_sample_path = f"/static/uploads/voices/{voice_filename}"
+        voice_bytes = await voice_sample.read()
+        member.voice_sample_path = await save_media_bytes(
+            pathname=f"voices/{voice_filename}",
+            body=voice_bytes,
+            content_type=voice_sample.content_type or "audio/mpeg",
+            local_dir=VOICE_DIR,
+            local_filename=voice_filename,
+            local_url=f"/static/uploads/voices/{voice_filename}",
+        )
+        voice_file_path = os.path.join(VOICE_DIR, voice_filename)
+        with open(voice_file_path, "wb") as temp_voice:
+            temp_voice.write(voice_bytes)
         # 标记为克隆中，后台异步完成真正的声音克隆
         member.voice_clone_id = "cloning..."
         voice_cloning = True
@@ -307,7 +334,6 @@ async def update_member(
 
     # 后台异步执行声音克隆
     if voice_cloning:
-        voice_file_path = os.path.join(VOICE_DIR, voice_filename)
         asyncio.create_task(_do_voice_clone(member.id, voice_file_path))
 
     return {

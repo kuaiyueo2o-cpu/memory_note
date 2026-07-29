@@ -146,10 +146,15 @@ async def generate_tts_for_period(period: str, db: Session = Depends(get_db)):
 
     if audio_data:
         audio_filename = f"{today}_{period}.mp3"
-        audio_file_path = os.path.join(AUDIO_DIR, audio_filename)
-        with open(audio_file_path, "wb") as f:
-            f.write(audio_data)
-        audio_path = f"/static/audio/{audio_filename}"
+        from app.services.media_store import save_media_bytes
+        audio_path = await save_media_bytes(
+            pathname=f"audio/{audio_filename}",
+            body=audio_data,
+            content_type="audio/mpeg",
+            local_dir=AUDIO_DIR,
+            local_filename=audio_filename,
+            local_url=f"/static/audio/{audio_filename}",
+        )
 
         # 更新数据库
         broadcast.audio_path = audio_path
