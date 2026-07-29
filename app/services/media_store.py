@@ -17,19 +17,18 @@ def blob_storage_enabled() -> bool:
     )
 
 
-def blob_runtime_config() -> tuple[str, str]:
-    store_id = os.environ.get("BLOB_STORE_ID", "").strip()
+def blob_runtime_config() -> str:
     token = (
         os.environ.get("BLOB_READ_WRITE_TOKEN", "").strip()
         or os.environ.get("VERCEL_BLOB_READ_WRITE_TOKEN", "").strip()
     )
-    if not store_id or not token:
+    if not token:
         raise RuntimeError("Blob 配置缺失")
-    return store_id, token
+    return token
 
 
 async def fetch_blob_bytes(pathname: str) -> tuple[bytes, str]:
-    _, token = blob_runtime_config()
+    token = blob_runtime_config()
     from vercel.blob import AsyncBlobClient
 
     client = AsyncBlobClient(token=token)
@@ -91,7 +90,7 @@ async def materialize_path_to_temp(path_or_url: str, suffix: str = "") -> str:
         headers = {}
         host = urlparse(path_or_url).hostname or ""
         if host.endswith(".private.blob.vercel-storage.com"):
-            _, token = blob_runtime_config()
+            token = blob_runtime_config()
             headers["Authorization"] = f"Bearer {token}"
         async with httpx.AsyncClient(timeout=60.0) as client:
             resp = await client.get(path_or_url, headers=headers)
