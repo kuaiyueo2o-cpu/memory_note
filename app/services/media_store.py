@@ -11,24 +11,32 @@ MEDIA_PROXY_PREFIX = "/media/"
 def blob_storage_enabled() -> bool:
     return bool(
         os.environ.get("BLOB_READ_WRITE_TOKEN")
+        or os.environ.get("PUBLIC_BLOB_READ_WRITE_TOKEN")
         or os.environ.get("VERCEL_OIDC_TOKEN")
         or os.environ.get("VERCEL")
         or os.environ.get("VERCEL_ENV")
     )
 
 
-def blob_runtime_config() -> str:
+def private_blob_token() -> str:
     token = (
         os.environ.get("BLOB_READ_WRITE_TOKEN", "").strip()
         or os.environ.get("VERCEL_BLOB_READ_WRITE_TOKEN", "").strip()
     )
     if not token:
-        raise RuntimeError("Blob 配置缺失")
+        raise RuntimeError("私有 Blob 配置缺失")
+    return token
+
+
+def public_blob_token() -> str:
+    token = os.environ.get("PUBLIC_BLOB_READ_WRITE_TOKEN", "").strip()
+    if not token:
+        raise RuntimeError("公开 Blob 配置缺失")
     return token
 
 
 async def fetch_blob_bytes(pathname: str) -> tuple[bytes, str]:
-    token = blob_runtime_config()
+    token = private_blob_token()
     from vercel.blob import AsyncBlobClient
 
     client = AsyncBlobClient(token=token)
@@ -66,7 +74,8 @@ async def save_media_bytes(
     if blob_storage_enabled():
         from vercel.blob import AsyncBlobClient
 
-        client = AsyncBlobClient()
+        token = public_blob_token() if access == "public" else private_blob_token()
+        client = AsyncBlobClient(token=token)
         blob = await client.put(
             pathname,
             body,
@@ -100,7 +109,7 @@ async def materialize_path_to_temp(path_or_url: str, suffix: str = "") -> str:
         headers = {}
         host = urlparse(path_or_url).hostname or ""
         if host.endswith(".private.blob.vercel-storage.com"):
-            token = blob_runtime_config()
+            token = private_blob_token()
             headers["Authorization"] = f"Bearer {token}"
         async with httpx.AsyncClient(timeout=60.0) as client:
             resp = await client.get(path_or_url, headers=headers)
