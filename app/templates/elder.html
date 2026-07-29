@@ -64,15 +64,53 @@ function makeCodeInputs(){
 async function bindDevice(){const code=[...$('code').querySelectorAll('input')].map(x=>x.value).join('');if(code.length!==6){$('error').textContent='请输入完整的六位邀请码';return}const r=await fetch('/api/device/bind',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({code,device_token:token,device_name:'老人陪伴设备'})}),d=await r.json();if(!r.ok){$('error').textContent=d.detail||'连接失败，请重新生成邀请码';return}$('bind').classList.remove('show');await loadMembers()}
 async function loadMembers(){const r=await fetch('/api/members'),d=await r.json();members=d.members||[];if(!members.length){$('status').textContent='家人正在准备陪伴内容';return}selected=members.find(x=>x.voice_cloned)||members[0];renderPeople();updateStage()}
 function renderPeople(){$('people').innerHTML=members.map(m=>`<button class="person ${m.id===selected.id?'on':''}" onclick="chooseMember(${m.id})" aria-label="切换到${escapeText(m.name)}的陪伴" title="${escapeText(m.name)}">${m.photo_path?`<img src="${m.photo_path}" alt="${escapeText(m.name)}">`:`<span class="initial">${escapeText(m.name.slice(0,1))}</span>`}</button>`).join('')}
-function chooseMember(id){const next=members.find(m=>m.id===id);if(!next||next.id===selected.id)return;selected=next;renderPeople();updateStage();speak(`${selected.name}在这里陪您。`)}
+function chooseMember(id){const next=members.find(m=>m.id===id);if(!next||next.id===selected.id)return;selected=next;renderPeople();updateStage();setMode('',`和${selected.name}说说话`)}
 function pausePresence(){const v=$('companionVideo');v.pause()}
 function playPresence(){const v=$('companionVideo');if(selected&&selected.id===1)v.play().catch(()=>{})}
 function updateStage(){const hasVideo=selected.id===1;$('companionVideo').style.display=hasVideo?'block':'none';$('portrait').style.display=hasVideo?'none':'block';if(!hasVideo){$('portraitImage').src=selected.photo_path||'';$('portraitImage').alt=selected.name}else pausePresence();$('status').textContent=selected.name+'在这里陪您';$('liveLabel').textContent='陪伴中'}
 function setMode(mode,text){$('talk').className='talk '+mode;$('talkText').textContent=text;$('status').textContent=text}
-function toggleTalk(){if(!selected){speak('家人还在为您准备，请稍后再试。');return}if(listening){recognition?.stop();return}const SR=window.SpeechRecognition||window.webkitSpeechRecognition;if(!SR){speak('这个设备暂时不能听写，请让家人帮助检查。');return}recognition=new SR();recognition.lang='zh-CN';recognition.interimResults=false;recognition.continuous=false;recognition.onstart=()=>{listening=true;setMode('listening','我在听')};recognition.onresult=e=>sendMessage(e.results[0][0].transcript);recognition.onerror=()=>{setMode('','再说一次');speak('刚才没有听清，我们再说一次。')};recognition.onend=()=>{listening=false;if(!$('talk').classList.contains('thinking')&&!$('talk').classList.contains('speaking'))setMode('','开始说话')};recognition.start()}
-async function sendMessage(text){setMode('thinking','正在想');try{const r=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({member_id:selected.id,message:text})}),d=await r.json();if(!r.ok)throw Error();if(d.message.audio_url)playAudio(d.message.audio_url,d.message.content);else speak(d.message.content)}catch(e){speak('刚才没有连接好，我们休息一下再试。')}}
-function playAudio(url,fallback){setMode('speaking',selected.name+'在说话');playPresence();const a=new Audio(url);const done=()=>{pausePresence();setMode('','开始说话')};a.addEventListener('ended',done,{once:true});a.addEventListener('error',()=>{done();speak(fallback)},{once:true});a.play().catch(()=>{done();speak(fallback)})}
-function speak(text){speechSynthesis.cancel();setMode('speaking',selected?selected.name+'在说话':'小暖在说话');playPresence();const u=new SpeechSynthesisUtterance(text);u.lang='zh-CN';u.rate=.82;u.onend=()=>{pausePresence();setMode('','开始说话')};u.onerror=()=>{pausePresence();setMode('','开始说话')};speechSynthesis.speak(u)}
+function toggleTalk(){
+  if(!selected){setMode('','请先选择家人');return}
+  if(listening){recognition?.stop();return}
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!SR){setMode('','设备暂不支持语音');return}
+  recognition=new SR();
+  recognition.lang='zh-CN';
+  recognition.interimResults=false;
+  recognition.continuous=false;
+  recognition.onstart=()=>{listening=true;setMode('listening','我在听')};
+  recognition.onresult=e=>{
+    const text=(e.results?.[0]?.[0]?.transcript||'').trim();
+    if(!text){setMode('','再试一次');return}
+    sendMessage(text);
+  };
+  recognition.onerror=()=>{pausePresence();setMode('','再试一次')};
+  recognition.onend=()=>{listening=false;if(!$('talk').classList.contains('thinking')&&!$('talk').classList.contains('speaking'))setMode('','开始说话')};
+  recognition.start()
+}
+async function sendMessage(text){
+  if(!text||!text.trim()){setMode('','开始说话');return}
+  setMode('thinking','正在想');
+  try{
+    const r=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({member_id:selected.id,message:text})}),d=await r.json();
+    if(!r.ok)throw Error();
+    if(d.message.audio_url){playAudio(d.message.audio_url);return}
+    pausePresence();
+    setMode('',`${selected.name}稍后再回答`);
+  }catch(e){
+    pausePresence();
+    setMode('','连接稍后重试');
+  }
+}
+function playAudio(url){
+  setMode('speaking',selected.name+'在说话');
+  playPresence();
+  const a=new Audio(url);
+  const done=()=>{pausePresence();setMode('','开始说话')};
+  a.addEventListener('ended',done,{once:true});
+  a.addEventListener('error',()=>{pausePresence();setMode('','再试一次')},{once:true});
+  a.play().catch(()=>{pausePresence();setMode('','点击再试')})
+}
 function escapeText(text){const d=document.createElement('div');d.textContent=text||'';return d.innerHTML}
 </script>
 </body>
