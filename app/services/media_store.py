@@ -16,6 +16,26 @@ def blob_storage_enabled() -> bool:
     )
 
 
+def blob_runtime_config() -> tuple[str, str]:
+    store_id = os.environ.get("BLOB_STORE_ID", "").strip()
+    token = (
+        os.environ.get("BLOB_READ_WRITE_TOKEN", "").strip()
+        or os.environ.get("VERCEL_BLOB_READ_WRITE_TOKEN", "").strip()
+    )
+    if not store_id or not token:
+        raise RuntimeError("Blob 配置缺失")
+    return store_id, token
+
+
+async def fetch_blob_bytes(pathname: str) -> tuple[bytes, str]:
+    store_id, token = blob_runtime_config()
+    blob_url = f"https://{store_id}.private.blob.vercel-storage.com/{pathname}"
+    async with httpx.AsyncClient(timeout=60.0, follow_redirects=True) as client:
+        resp = await client.get(blob_url, headers={"Authorization": f"Bearer {token}"})
+        resp.raise_for_status()
+        return resp.content, resp.headers.get("content-type", "application/octet-stream")
+
+
 async def save_media_bytes(
     *,
     pathname: str,
@@ -53,24 +73,12 @@ async def materialize_path_to_temp(path_or_url: str, suffix: str = "") -> str:
     if path_or_url.startswith(MEDIA_PROXY_PREFIX) or (
         "/" not in path_or_url and path_or_url.startswith(("photos", "audio", "voices"))
     ):
-        from vercel.blob import AsyncBlobClient
-
-        client = AsyncBlobClient()
         blob_path = (
             path_or_url[len(MEDIA_PROXY_PREFIX):]
             if path_or_url.startswith(MEDIA_PROXY_PREFIX)
             else path_or_url
         )
-        result = await client.get(
-            blob_path,
-            access="private",
-        )
-        if result is None or result.status_code != 200 or result.stream is None:
-            raise FileNotFoundError("Blob 文件不存在")
-        chunks = []
-        async for chunk in result.stream:
-            chunks.append(chunk)
-        data = b"".join(chunks)
+        data, _ = await fetch_blob_bytes(blob_path)
     elif path_or_url.startswith("http://") or path_or_url.startswith("https://"):
         async with httpx.AsyncClient(timeout=60.0) as client:
             resp = await client.get(path_or_url)

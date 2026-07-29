@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import StreamingResponse
 
-from app.services.media_store import blob_storage_enabled
+from app.services.media_store import blob_storage_enabled, fetch_blob_bytes
 
 router = APIRouter(prefix="/media", tags=["媒体文件"])
 
@@ -16,19 +16,16 @@ async def get_media(blob_path: str):
     if not blob_path.startswith(ALLOWED_PUBLIC_PREFIXES):
         raise HTTPException(status_code=403, detail="该媒体文件不可直接访问")
 
-    from vercel.blob import AsyncBlobClient
-
-    client = AsyncBlobClient()
-    result = await client.get(blob_path, access="private")
-    if result is None or result.status_code != 200 or result.stream is None:
+    try:
+        data, content_type = await fetch_blob_bytes(blob_path)
+    except Exception:
         raise HTTPException(status_code=404, detail="媒体文件不存在")
 
     return StreamingResponse(
-        result.stream,
-        media_type=result.blob.content_type or "application/octet-stream",
+        iter([data]),
+        media_type=content_type or "application/octet-stream",
         headers={
             "X-Content-Type-Options": "nosniff",
             "Cache-Control": "private, no-cache",
-            "ETag": result.blob.etag,
         },
     )

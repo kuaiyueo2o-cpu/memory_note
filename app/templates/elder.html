@@ -38,7 +38,29 @@ const $=id=>document.getElementById(id);let members=[],selected=null,recognition
 // 视频加载完成后先停在一帧；静默时显示定格画面，绝不显示黑屏或自动播放。
 $('companionVideo').addEventListener('loadeddata',()=>{const v=$('companionVideo');if(v.paused&&v.currentTime===0)v.currentTime=.1},{once:true});
 document.addEventListener('DOMContentLoaded',async()=>{makeCodeInputs();if(new URLSearchParams(location.search).get('demo')==='1'){await loadMembers();return}const r=await fetch('/api/device/status/'+token),d=await r.json();if(!d.bound){$('bind').classList.add('show');return}await loadMembers()});
-function makeCodeInputs(){$('code').innerHTML=Array.from({length:6},(_,i)=>`<input inputmode="numeric" maxlength="1" aria-label="第${i+1}位">`).join('');const xs=[...$('code').querySelectorAll('input')];xs.forEach((x,i)=>{x.oninput=()=>{x.value=x.value.replace(/\D/g,'');if(x.value&&xs[i+1])xs[i+1].focus()};x.onkeydown=e=>{if(e.key==='Backspace'&&!x.value&&xs[i-1])xs[i-1].focus()};x.onpaste=e=>{e.preventDefault();const v=e.clipboardData.getData('text').replace(/\D/g,'').slice(0,6);[...v].forEach((c,j)=>xs[j].value=c);xs[Math.min(v.length,5)].focus()}})}
+function makeCodeInputs(){
+  $('code').innerHTML=Array.from({length:6},(_,i)=>`<input id="invite-${i}" data-index="${i}" type="tel" inputmode="numeric" pattern="[0-9]*" maxlength="1" autocomplete="one-time-code" aria-label="第${i+1}位">`).join('');
+  const xs=[...$('code').querySelectorAll('input')];
+  xs.forEach((x,i)=>{
+    x.addEventListener('input',e=>{
+      const raw=(e.target.value||'').replace(/\D/g,'');
+      if(!raw){e.target.value='';return}
+      e.target.value=raw.slice(-1);
+      if(xs[i+1])xs[i+1].focus();
+    });
+    x.addEventListener('keydown',e=>{
+      if(e.key==='Backspace'&&!x.value&&xs[i-1])xs[i-1].focus();
+      if(e.key==='ArrowLeft'&&xs[i-1])xs[i-1].focus();
+      if(e.key==='ArrowRight'&&xs[i+1])xs[i+1].focus();
+    });
+    x.addEventListener('paste',e=>{
+      e.preventDefault();
+      const v=(e.clipboardData.getData('text')||'').replace(/\D/g,'').slice(0,6);
+      xs.forEach((node,idx)=>node.value=v[idx]||'');
+      (xs[Math.min(v.length,5)]||xs[5]).focus();
+    });
+  });
+}
 async function bindDevice(){const code=[...$('code').querySelectorAll('input')].map(x=>x.value).join('');if(code.length!==6){$('error').textContent='请输入完整的六位邀请码';return}const r=await fetch('/api/device/bind',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({code,device_token:token,device_name:'老人陪伴设备'})}),d=await r.json();if(!r.ok){$('error').textContent=d.detail||'连接失败，请重新生成邀请码';return}$('bind').classList.remove('show');await loadMembers()}
 async function loadMembers(){const r=await fetch('/api/members'),d=await r.json();members=d.members||[];if(!members.length){$('status').textContent='家人正在准备陪伴内容';return}selected=members.find(x=>x.voice_cloned)||members[0];renderPeople();updateStage()}
 function renderPeople(){$('people').innerHTML=members.map(m=>`<button class="person ${m.id===selected.id?'on':''}" onclick="chooseMember(${m.id})" aria-label="切换到${escapeText(m.name)}的陪伴" title="${escapeText(m.name)}">${m.photo_path?`<img src="${m.photo_path}" alt="${escapeText(m.name)}">`:`<span class="initial">${escapeText(m.name.slice(0,1))}</span>`}</button>`).join('')}
