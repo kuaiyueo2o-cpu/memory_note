@@ -74,6 +74,8 @@ async def save_media_bytes(
             content_type=content_type,
             add_random_suffix=False,
         )
+        if access == "public":
+            return blob.url
         return f"{MEDIA_PROXY_PREFIX}{blob.pathname}" if expose_via_app else blob.pathname
 
     os.makedirs(local_dir, exist_ok=True)

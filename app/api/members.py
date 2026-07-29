@@ -182,6 +182,7 @@ async def add_member(
             local_dir=PHOTO_DIR,
             local_filename=photo_filename,
             local_url=f"/static/uploads/photos/{photo_filename}",
+            access="public",
             expose_via_app=True,
         )
 
@@ -307,6 +308,7 @@ async def update_member(
             local_dir=PHOTO_DIR,
             local_filename=photo_filename,
             local_url=f"/static/uploads/photos/{photo_filename}",
+            access="public",
             expose_via_app=True,
         )
 

@@ -144,6 +144,7 @@ async def send(payload:ChatIn, db:Session=Depends(get_db)):
                 local_dir=os.path.join(os.path.dirname(__file__), "..", "static", "audio"),
                 local_filename=filename,
                 local_url=f"/static/audio/{filename}",
+                access="public",
                 expose_via_app=True,
             )
     except Exception:

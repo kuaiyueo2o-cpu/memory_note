@@ -154,6 +154,7 @@ async def generate_tts_for_period(period: str, db: Session = Depends(get_db)):
             local_dir=AUDIO_DIR,
             local_filename=audio_filename,
             local_url=f"/static/audio/{audio_filename}",
+            access="public",
         )
 
         # 更新数据库

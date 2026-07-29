@@ -24,6 +24,7 @@ async def _persist_audio_bytes(audio_bytes: bytes, filename: str) -> str:
         local_dir=AUDIO_DIR,
         local_filename=filename,
         local_url=f"/static/audio/{filename}",
+        access="public",
         expose_via_app=True,
     )
 
