@@ -30,17 +30,18 @@ def blob_runtime_config() -> tuple[str, str]:
 
 async def fetch_blob_bytes(pathname: str) -> tuple[bytes, str]:
     _, token = blob_runtime_config()
-    from vercel.blob import list_objects
+    from vercel.blob import AsyncBlobClient
 
-    listing = list_objects(prefix=pathname, limit=10, token=token)
-    blob_item = next((item for item in listing.blobs if item.pathname == pathname), None)
-    if not blob_item:
+    client = AsyncBlobClient(token=token)
+    result = await client.get(pathname, access="private")
+    if result is None or result.status_code != 200 or result.stream is None:
         raise FileNotFoundError("Blob 文件不存在")
-    blob_url = blob_item.url
-    async with httpx.AsyncClient(timeout=60.0, follow_redirects=True) as client:
-        resp = await client.get(blob_url, headers={"Authorization": f"Bearer {token}"})
-        resp.raise_for_status()
-        return resp.content, resp.headers.get("content-type", "application/octet-stream")
+
+    chunks: list[bytes] = []
+    async for chunk in result.stream:
+        chunks.append(chunk)
+
+    return b"".join(chunks), (result.blob.content_type or "application/octet-stream")
 
 
 async def save_media_bytes(
